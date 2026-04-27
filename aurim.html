@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aurim — energia da alma</title>
+<meta name="theme-color" content="#F5EFE4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="aurim">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@100;200;300;400&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--cream:#E8DEC8;--terra:#A0522D;--gold:#B8860B;--ink:#0A0400;--ink2:#1A0C02;--ink3:#3A1E06;--surface:#D8CCBA;--white:#F5EFE0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--cream);color:var(--ink);font-family:'Jost',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;max-width:430px;margin:0 auto;position:relative}
+.screen{position:absolute;inset:0;background:var(--cream);display:none;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+.screen-body{flex:1;overflow-y:auto;padding:0 20px 20px;-webkit-overflow-scrolling:touch}
+.section-label{font-size:10px;letter-spacing:.2em;color:var(--ink3);font-weight:300;text-transform:lowercase;margin-bottom:10px}
+.card{background:var(--white);border-radius:14px;padding:16px;margin-bottom:12px}
+.btn-primary{background:var(--terra);color:var(--white);border:none;border-radius:40px;padding:13px 28px;font-family:'Jost',sans-serif;font-weight:300;font-size:13px;letter-spacing:.15em;cursor:pointer;text-transform:lowercase;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--terra);border:.5px solid var(--terra);border-radius:40px;padding:11px 24px;font-family:'Jost',sans-serif;font-weight:300;font-size:12px;letter-spacing:.15em;cursor:pointer;text-transform:lowercase;width:100%}
+.btn-gold{background:var(--gold);color:var(--white);border:none;border-radius:40px;padding:13px 28px;font-family:'Jost',sans-serif;font-weight:300;font-size:13px;letter-spacing:.15em;cursor:pointer;text-transform:lowercase;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+.chip{display:inline-block;background:var(--surface);border-radius:20px;padding:5px 12px;font-size:10px;letter-spacing:.12em;color:var(--ink2);font-weight:300}
+.divider{height:.5px;background:rgba(44,26,14,.08);margin:16px 0}
+.input-field{width:100%;background:var(--white);border:.5px solid rgba(44,26,14,.15);border-radius:12px;padding:14px 16px;font-family:'Jost',sans-serif;font-size:14px;font-weight:300;color:var(--ink);outline:none;letter-spacing:.05em;margin-bottom:12px;transition:border-color .2s}
+.input-field:focus{border-color:var(--terra)}
+.input-field::placeholder{color:var(--ink3)}
+.bottom-nav{display:flex;background:var(--white);border-top:.5px solid rgba(44,26,14,.1);padding:8px 0 16px;flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 0}
+.nav-item svg{width:20px;height:20px}
+.nav-label{font-size:9px;letter-spacing:.12em;text-transform:lowercase;font-weight:300;color:var(--ink3)}
+.mood-row{display:flex;gap:8px;justify-content:space-between;margin-bottom:20px}
+.mood-btn{flex:1;aspect-ratio:1;border:.5px solid rgba(44,26,14,.1);border-radius:12px;background:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:18px;transition:all .15s}
+.mood-btn.selected{border-color:var(--terra);background:rgba(184,96,56,.07)}
+.mood-label{font-size:8px;letter-spacing:.1em;color:var(--ink3);font-weight:300}
+.voice-btn{width:64px;height:64px;border-radius:50%;background:var(--terra);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.voice-btn.recording{box-shadow:0 0 0 12px rgba(184,96,56,.15),0 0 0 24px rgba(184,96,56,.07)}
+textarea.entry{width:100%;min-height:110px;background:var(--white);border:.5px solid rgba(44,26,14,.1);border-radius:14px;padding:14px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;color:var(--ink);resize:none;outline:none;line-height:1.7}
+textarea.entry::placeholder{color:var(--ink3)}
+.entry-item{background:var(--white);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.entry-day{font-family:'Jost',sans-serif;font-weight:100;font-size:22px;color:var(--terra);line-height:1}
+.entry-mon{font-size:8px;letter-spacing:.15em;color:var(--ink3);font-weight:300}
+.entry-preview{font-size:12px;color:var(--ink2);line-height:1.6;font-weight:300;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mood-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cat-chip{display:inline-block;background:rgba(200,152,58,.12);border-radius:20px;padding:4px 12px;font-size:10px;letter-spacing:.12em;color:var(--gold);font-weight:300;margin-top:8px}
+.cat-bar{margin-bottom:12px}
+.cat-bar-label{display:flex;justify-content:space-between;margin-bottom:4px}
+.cat-bar-name{font-size:11px;letter-spacing:.08em;color:var(--ink2);font-weight:300}
+.cat-bar-pct{font-size:11px;color:var(--ink3);font-weight:200}
+.cat-bar-track{height:3px;background:rgba(44,26,14,.08);border-radius:2px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.score-big{font-family:'Jost',sans-serif;font-weight:100;font-size:52px;color:var(--terra)}
+.score-label{font-size:9px;letter-spacing:.2em;color:var(--ink3);font-weight:300}
+.insight-item{display:flex;gap:10px;padding:12px 0;border-bottom:.5px solid rgba(44,26,14,.06)}
+.insight-item:last-child{border-bottom:none}
+.insight-num{font-family:'Jost',sans-serif;font-weight:100;font-size:22px;color:rgba(184,96,56,.3);flex-shrink:0;width:24px}
+.insight-text{font-size:12px;line-height:1.65;color:var(--ink2);font-weight:300}
+.perma-item{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.perma-name{font-size:10px;letter-spacing:.12em;color:var(--ink3);width:90px;flex-shrink:0}
+.perma-track{flex:1;height:2px;background:rgba(44,26,14,.08);border-radius:1px;overflow:hidden}
+.perma-fill{height:100%;border-radius:1px;background:var(--terra)}
+.perma-score-val{font-size:11px;color:var(--ink2);font-weight:300;width:26px;text-align:right}
+.hbox{background:rgba(184,96,56,.07);border-left:2px solid var(--terra);border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px}
+.hbox-label{font-size:9px;letter-spacing:.2em;color:var(--terra);font-weight:300;margin-bottom:4px}
+.hbox-text{font-size:12px;line-height:1.6;color:var(--ink);font-weight:300}
+.modal-overlay{position:absolute;inset:0;background:rgba(44,26,14,.4);display:none;align-items:flex-end;z-index:100}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--cream);border-radius:20px 20px 0 0;padding:24px 20px 32px;width:100%;max-height:85vh;overflow-y:auto}
+.plan-card{border-radius:14px;padding:16px;margin-bottom:10px;border:.5px solid rgba(44,26,14,.1);background:var(--white)}
+.plan-card.featured{border-color:var(--terra);background:rgba(184,96,56,.04)}
+.toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--white);border-radius:20px;padding:8px 18px;font-size:11px;letter-spacing:.08em;font-weight:300;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+.spinner{display:inline-block;width:14px;height:14px;border:1.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+.spinner-t{border-color:rgba(184,96,56,.25);border-top-color:var(--terra)}
+.timeline-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;align-items:flex-end}
+.timeline-row::-webkit-scrollbar{display:none}
+.day-circle{flex-shrink:0;border-radius:50%;cursor:pointer;transition:transform .1s}
+.back-btn{cursor:pointer;color:var(--terra);font-size:24px;line-height:1;margin-right:6px;flex-shrink:0}
+.hora-chip{display:inline-block;background:var(--surface);border-radius:20px;padding:6px 14px;font-size:11px;letter-spacing:.1em;color:var(--ink2);font-weight:300;cursor:pointer;transition:all .15s}
+.hora-chip.selected{background:var(--terra);color:var(--white)}
+.area-card{background:var(--white);border-radius:14px;padding:14px;cursor:pointer;border:.5px solid rgba(44,26,14,.1);transition:all .2s;text-align:center}
+.area-card.selected{border-color:var(--terra);background:rgba(184,96,56,.06)}
+.area-card-icon{font-size:24px;margin-bottom:6px}
+.area-card-name{font-size:11px;letter-spacing:.1em;color:var(--ink2);font-weight:300}
+.area-card.selected .area-card-name{color:var(--terra);font-weight:400}
+.partner-card{background:var(--white);border-radius:14px;padding:16px;margin-bottom:10px;border:.5px solid rgba(44,26,14,.08)}
+.partner-avatar{width:40px;height:40px;border-radius:50%;background:rgba(184,96,56,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.partner-bar-track{height:3px;background:rgba(44,26,14,.08);border-radius:2px;overflow:hidden;margin-top:6px}
+.partner-bar-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .8s ease}
+.code-box{background:var(--surface);border-radius:10px;padding:12px 16px;text-align:center;font-family:'Jost',sans-serif;font-weight:300;font-size:22px;letter-spacing:.35em;color:var(--terra);cursor:pointer;margin:10px 0}
+.code-input{width:100%;background:var(--white);border:.5px solid rgba(44,26,14,.15);border-radius:12px;padding:12px 16px;font-family:'Jost',sans-serif;font-size:18px;font-weight:300;color:var(--ink);outline:none;letter-spacing:.25em;text-align:center;text-transform:uppercase;margin-bottom:8px}
+.confronto-card{background:var(--ink);border-radius:16px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
+.confronto-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--terra),var(--gold))}
+.confronto-label{font-size:9px;letter-spacing:.2em;color:var(--gold);font-weight:300;margin-bottom:10px;text-transform:lowercase}
+.confronto-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;line-height:1.7;color:rgba(245,239,228,.9);margin-bottom:14px}
+.confronto-input{width:100%;background:rgba(245,239,228,.08);border:.5px solid rgba(245,239,228,.2);border-radius:10px;padding:12px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;color:rgba(245,239,228,.9);resize:none;outline:none;line-height:1.6;min-height:80px}
+.confronto-input::placeholder{color:rgba(245,239,228,.35)}
+.confronto-btn{background:var(--gold);color:var(--ink);border:none;border-radius:30px;padding:10px 20px;font-family:'Jost',sans-serif;font-weight:400;font-size:12px;letter-spacing:.1em;cursor:pointer;margin-top:10px;width:100%}
+.confronto-mini-diag{background:rgba(245,239,228,.06);border-radius:10px;padding:12px;margin-top:12px;border:.5px solid rgba(200,152,58,.3)}
+.confronto-mini-label{font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:6px}
+.confronto-mini-text{font-size:12px;color:rgba(245,239,228,.8);line-height:1.65}
+
+/* Progresso 30 dias */
+.progress-30{background:var(--white);border-radius:14px;padding:16px;margin-bottom:10px}
+.progress-bar-track{height:4px;background:rgba(44,26,14,.08);border-radius:2px;overflow:hidden;margin:10px 0 6px}
+.progress-bar-fill{height:100%;border-radius:2px;background:var(--terra);transition:width 1s ease}
+.progress-days{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);letter-spacing:.08em}
+
+/* Tela de revelação */
+#revelacao{background:var(--ink);color:var(--white)}
+#revelacao .screen-body{background:var(--ink)}
+.rev-envelope{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;flex:1}
+.rev-envelope svg{animation:floatUp 1s ease forwards;opacity:0}
+.rev-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:var(--white);text-align:center;line-height:1.4;margin-top:28px;opacity:0;animation:fadeUp .8s ease forwards .6s}
+.rev-sub{font-size:11px;letter-spacing:.2em;color:rgba(245,239,228,.5);text-align:center;margin-top:8px;opacity:0;animation:fadeUp .8s ease forwards .9s}
+.rev-btn{opacity:0;animation:fadeUp .8s ease forwards 1.4s;width:100%;margin-top:32px}
+.rev-content{background:var(--ink);padding:20px}
+.rev-carta-box{background:rgba(245,239,228,.06);border:.5px solid rgba(245,239,228,.15);border-radius:14px;padding:16px;margin-bottom:16px}
+.rev-carta-label{font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:8px}
+.rev-carta-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;line-height:1.8;color:rgba(245,239,228,.85)}
+.rev-score-wrap{text-align:center;padding:20px 0}
+.rev-score-num{font-family:'Jost',sans-serif;font-weight:100;font-size:72px;color:var(--gold)}
+.rev-score-label{font-size:10px;letter-spacing:.2em;color:rgba(245,239,228,.5);margin-top:4px}
+.rev-insight{border-left:2px solid var(--gold);padding:12px 14px;margin-bottom:10px;background:rgba(200,152,58,.08);border-radius:0 10px 10px 0}
+.rev-insight-label{font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:4px}
+.rev-insight-text{font-size:12px;line-height:1.6;color:rgba(245,239,228,.85)}
+.rev-miss-box{background:rgba(184,96,56,.15);border:.5px solid rgba(184,96,56,.4);border-radius:14px;padding:14px;margin-bottom:16px;text-align:center}
+.rev-miss-num{font-family:'Jost',sans-serif;font-weight:100;font-size:36px;color:var(--terra)}
+.rev-miss-label{font-size:10px;letter-spacing:.15em;color:rgba(245,239,228,.5);margin-top:4px}
+.next-30-btn{background:var(--gold);color:var(--ink);border:none;border-radius:40px;padding:14px 28px;font-family:'Jost',sans-serif;font-weight:400;font-size:13px;letter-spacing:.15em;cursor:pointer;text-transform:lowercase;width:100%;margin-top:8px}
+
+/* Notificação banner */
+.notif-banner{position:absolute;top:0;left:0;right:0;background:var(--terra);color:var(--white);padding:14px 20px;display:flex;align-items:center;gap:12px;z-index:300;transform:translateY(-100%);transition:transform .4s ease;cursor:pointer}
+.notif-banner.show{transform:translateY(0)}
+.notif-banner-text{flex:1;font-size:12px;letter-spacing:.05em;line-height:1.5}
+.notif-banner-close{font-size:18px;opacity:.7;flex-shrink:0}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+@keyframes floatUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes shimmer{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+</style>
+</head>
+<body>
+
+<!-- NOTIF BANNER -->
+<div class="notif-banner" id="notif-banner" onclick="abrirRevelacao()">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <rect x="2" y="5" width="16" height="11" rx="2" stroke="white" stroke-width="1.2"/>
+    <path d="M2 7l8 5 8-5" stroke="white" stroke-width="1.2"/>
+  </svg>
+  <div class="notif-banner-text">seu espelho chegou — 7 dias de jornada beta te esperam</div>
+  <div class="notif-banner-close">×</div>
+</div>
+
+<!-- SPLASH -->
+<div class="screen active" id="splash">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;opacity:0;transform:translateY(12px);animation:fadeUp 1.2s ease forwards .3s">
+    <svg width="80" height="100" viewBox="0 0 90 110" fill="none">
+      <path d="M16 64 Q16 18 45 18 Q74 18 74 64" stroke="#B86038" stroke-width="1.2" fill="none"/>
+      <circle cx="62" cy="54" r="10" stroke="rgba(184,96,56,0.25)" stroke-width=".8" fill="none"/>
+      <line x1="45" y1="64" x2="45" y2="88" stroke="#B86038" stroke-width=".7"/>
+      <line x1="20" y1="88" x2="70" y2="88" stroke="#B86038" stroke-width=".7"/>
+      <circle cx="45" cy="88" r="3.5" fill="#C8983A"/>
+      <circle cx="45" cy="30" r="1.5" fill="rgba(200,152,58,0.5)"/>
+    </svg>
+    <div style="margin-top:20px;font-family:'Jost',sans-serif;font-weight:100;font-size:26px;letter-spacing:.35em;color:var(--ink)">aurim</div>
+    <div style="font-size:9px;letter-spacing:.4em;color:var(--ink3);font-weight:200;margin-top:4px">energia da alma</div>
+    <div style="width:50px;height:.5px;background:var(--terra);opacity:.35;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="screen" id="onboarding">
+  <div class="screen-body" style="padding:40px 28px 32px;display:flex;flex-direction:column;justify-content:center">
+    <svg width="48" height="60" viewBox="0 0 90 110" fill="none" style="margin-bottom:24px">
+      <path d="M16 64 Q16 18 45 18 Q74 18 74 64" stroke="#B86038" stroke-width="1.5" fill="none"/>
+      <circle cx="62" cy="54" r="10" stroke="rgba(184,96,56,0.25)" stroke-width="1" fill="none"/>
+      <line x1="45" y1="64" x2="45" y2="88" stroke="#B86038" stroke-width=".9"/>
+      <line x1="20" y1="88" x2="70" y2="88" stroke="#B86038" stroke-width=".9"/>
+      <circle cx="45" cy="88" r="3.5" fill="#C8983A"/>
+    </svg>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;line-height:1.4;color:var(--ink);margin-bottom:8px">bem-vindo ao aurim</div>
+    <div style="font-size:12px;color:var(--ink3);line-height:1.7;margin-bottom:32px;font-weight:200">registre seu dia a dia. no 7º dia, receba seu primeiro espelho — o que você quis versus o que realmente aconteceu.</div>
+    <div class="section-label">como posso te chamar?</div>
+    <input class="input-field" id="ob-nome" type="text" placeholder="seu nome" autocomplete="given-name">
+    <div class="section-label">seu e-mail</div>
+    <input class="input-field" id="ob-email" type="email" placeholder="email@exemplo.com" autocomplete="email">
+    <div style="height:8px"></div>
+    <button class="btn-primary" id="btn-entrar" onclick="entrar()">começar minha jornada</button>
+    <div style="margin-top:14px;margin-bottom:4px">
+      <div style="font-size:10px;letter-spacing:.1em;color:var(--ink3);margin-bottom:8px;text-align:center;font-weight:200">quando você prefere refletir?</div>
+      <div style="display:flex;gap:6px;justify-content:center" id="ritual-grid">
+        <div class="hora-chip selected" data-hora="08:00" onclick="selecionarRitual(this)">manhã</div>
+        <div class="hora-chip" data-hora="13:00" onclick="selecionarRitual(this)">tarde</div>
+        <div class="hora-chip" data-hora="21:00" onclick="selecionarRitual(this)">noite</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--ink3);text-align:center;margin-top:10px;line-height:1.7;font-weight:200">use o mesmo e-mail em qualquer dispositivo<br>para acessar suas entradas</div>
+  </div>
+</div>
+
+
+<!-- ANCORA -->
+<div class="screen" id="ancora">
+  <div class="screen-body" style="padding:20px 20px 24px">
+    <div style="font-size:22px;text-align:center;margin-bottom:10px">🎯</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;line-height:1.3;color:var(--ink);margin-bottom:6px;text-align:center">qual é sua âncora neste ciclo?</div>
+    <div style="font-size:11px;color:var(--ink3);line-height:1.5;margin-bottom:12px;font-weight:200;text-align:center">escolha a área que mais quer transformar. você pode mudar no perfil.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px" id="area-grid-ancora">
+      <div class="area-card selected" data-area="carreira" onclick="selecionarAreaAncora(this)" style="padding:8px"><div class="area-card-icon" style="font-size:18px;margin-bottom:2px">💼</div><div class="area-card-name">carreira</div></div>
+      <div class="area-card" data-area="saúde" onclick="selecionarAreaAncora(this)" style="padding:8px"><div class="area-card-icon" style="font-size:18px;margin-bottom:2px">🌿</div><div class="area-card-name">saúde</div></div>
+      <div class="area-card" data-area="relacionamentos" onclick="selecionarAreaAncora(this)" style="padding:8px"><div class="area-card-icon" style="font-size:18px;margin-bottom:2px">🤝</div><div class="area-card-name">relacionamentos</div></div>
+      <div class="area-card" data-area="família" onclick="selecionarAreaAncora(this)" style="padding:8px"><div class="area-card-icon" style="font-size:18px;margin-bottom:2px">🏠</div><div class="area-card-name">família</div></div>
+      <div class="area-card" data-area="finanças" onclick="selecionarAreaAncora(this)" style="padding:8px"><div class="area-card-icon" style="font-size:18px;margin-bottom:2px">💰</div><div class="area-card-name">finanças</div></div>
+      <div class="area-card" data-area="propósito" onclick="selecionarAreaAncora(this)" style="padding:8px"><div class="area-card-icon" style="font-size:18px;margin-bottom:2px">✨</div><div class="area-card-name">propósito</div></div>
+    </div>
+    <div style="height:8px"></div>
+    <div style="font-size:11px;color:rgba(74,46,18,.7);text-align:center;margin-bottom:8px;font-weight:200;letter-spacing:.05em">como você quer ser acompanhado?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px" id="modo-grid">
+      <div class="area-card selected" data-modo="leve" onclick="selecionarModo(this)" style="padding:10px;text-align:center">
+        <div style="font-size:18px;margin-bottom:4px">🌱</div>
+        <div style="font-size:12px;letter-spacing:.06em;color:var(--ink2);font-weight:300">leve e progressivo</div>
+        
+      </div>
+      <div class="area-card" data-modo="direto" onclick="selecionarModo(this)" style="padding:10px;text-align:center">
+        <div style="font-size:18px;margin-bottom:4px">⚡</div>
+        <div style="font-size:12px;letter-spacing:.06em;color:var(--ink2);font-weight:300">direto e sem filtro</div>
+        
+      </div>
+    </div>
+    <button class="btn-primary" onclick="confirmarAncora()">confirmar e começar</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="home">
+  <div style="padding:52px 20px 12px;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="min-width:0;flex:1">
+        <div id="home-date" style="font-size:10px;letter-spacing:.15em;color:var(--ink3);font-weight:200;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;font-size:24px;color:var(--ink);line-height:1.3">O que merece ser<br>registrado hoje?</div>
+      </div>
+      <div onclick="goTo('perfil')" style="cursor:pointer;margin-top:4px;width:36px;height:36px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="#9C7A5A" stroke-width="1"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#9C7A5A" stroke-width="1" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="screen-body">
+    <!-- Progresso 30 dias -->
+    <div class="progress-30" id="progress-30-block">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:11px;letter-spacing:.1em;color:var(--ink2);font-weight:300">jornada beta · 7 dias</div>
+        <div id="prog-badge" class="chip" style="font-size:9px">dia 1</div>
+      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="progress-days"><span id="prog-days-done">0 dias registrados</span><span>7</span></div>
+      <div id="prog-cta" style="margin-top:10px;display:none">
+        <button class="btn-gold" onclick="abrirRevelacao()" style="font-size:12px;padding:10px">✦ seu espelho chegou — ver diagnóstico</button>
+      </div>
+      <!-- Scores -->
+      <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:.5px solid rgba(44,26,14,.06)" id="scores-block">
+        <div style="flex:1;text-align:center">
+          <div id="score-consistencia" style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;color:var(--terra)">—</div>
+          <div style="font-size:9px;letter-spacing:.1em;color:var(--ink3)">consistência</div>
+        </div>
+        <div style="width:.5px;background:rgba(44,26,14,.06)"></div>
+        <div style="flex:1;text-align:center">
+          <div id="score-alinhamento" style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;color:var(--gold)">—</div>
+          <div style="font-size:9px;letter-spacing:.1em;color:var(--ink3)">alinhamento</div>
+        </div>
+        <div style="width:.5px;background:rgba(44,26,14,.06)"></div>
+        <div style="flex:1;text-align:center">
+          <div id="score-tendencia" style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;color:var(--ink2)">→</div>
+          <div style="font-size:9px;letter-spacing:.1em;color:var(--ink3)">tendência</div>
+        </div>
+      </div>
+    </div>
+    <!-- Streak + Âncora -->
+    <div style="background:var(--white);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div id="streak-num" style="font-family:Arial,sans-serif;font-weight:300;font-size:32px;color:var(--terra);line-height:1">0</div>
+      <div><div style="font-size:11px;letter-spacing:.1em;color:var(--ink2);font-weight:200">dias seguidos</div><div style="font-size:9px;letter-spacing:.08em;color:var(--ink3)">continue assim</div></div>
+      <div style="margin-left:auto;text-align:right">
+        <div id="home-user-name" style="font-family:'Jost',sans-serif;font-weight:300;font-size:13px;color:var(--ink2)"></div>
+        <div id="home-ancora" style="font-size:9px;letter-spacing:.08em;color:var(--terra);margin-top:2px"></div>
+      </div>
+      <!-- Micro vitórias -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="micro-vitorias"></div>
+    </div>
+    <!-- Parceiro -->
+    <div id="partner-home-block" style="display:none;margin-bottom:10px"></div>
+
+    <!-- Confronto -->
+    <div id="confronto-home-block" style="display:none"></div>
+
+    <!-- Insight do Dia -->
+    <div id="insight-dia-block" style="display:none;margin-bottom:10px"></div>
+
+    <!-- Grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="card" style="cursor:pointer;padding:14px" onclick="goTo('registrar')">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(184,96,56,.1);display:flex;align-items:center;justify-content:center;margin-bottom:10px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#B86038" stroke-width="1"/><line x1="5" y1="6" x2="11" y2="6" stroke="#B86038" stroke-width="1"/><line x1="5" y1="9" x2="9" y2="9" stroke="#B86038" stroke-width="1"/></svg></div>
+        <div style="font-size:12px;letter-spacing:.08em;color:var(--ink);font-weight:300">registrar</div>
+        <div style="font-size:10px;color:var(--ink3);font-weight:200;margin-top:2px">escreva ou fale</div>
+      </div>
+      <div class="card" style="cursor:pointer;padding:14px" onclick="goTo('diagnostico')">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(200,152,58,.1);display:flex;align-items:center;justify-content:center;margin-bottom:10px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#C8983A" stroke-width="1"/><path d="M8 5v3l2 1.5" stroke="#C8983A" stroke-width="1" stroke-linecap="round"/></svg></div>
+        <div style="font-size:12px;letter-spacing:.08em;color:var(--ink);font-weight:300">diagnóstico</div>
+        <div style="font-size:10px;color:var(--ink3);font-weight:200;margin-top:2px">análise ia</div>
+      </div>
+      <div class="card" style="cursor:pointer;padding:14px" onclick="goTo('carta')">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(200,152,58,.08);display:flex;align-items:center;justify-content:center;margin-bottom:10px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1.5" stroke="#C8983A" stroke-width="1"/><path d="M2 6l6 4 6-4" stroke="#C8983A" stroke-width="1"/></svg></div>
+        <div style="font-size:12px;letter-spacing:.08em;color:var(--ink);font-weight:300">carta</div>
+        <div style="font-size:10px;color:var(--ink3);font-weight:200;margin-top:2px" id="carta-status-label">escrever agora</div>
+      </div>
+      <div class="card" style="cursor:pointer;padding:14px" onclick="showPlanos()">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(92,61,38,.08);display:flex;align-items:center;justify-content:center;margin-bottom:10px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3.5L14 6l-3 3 .7 4L8 11.5 4.3 13l.7-4L2 6l4.5-.5z" stroke="#5C3D26" stroke-width="1"/></svg></div>
+        <div style="font-size:12px;letter-spacing:.08em;color:var(--ink);font-weight:300">planos</div>
+        <div id="home-plano-label" style="font-size:10px;color:var(--ink3);font-weight:200;margin-top:2px">gratuito</div>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <div class="section-label">últimas entradas</div>
+      <div id="home-entries"><div style="text-align:center;padding:20px;color:var(--ink3);font-size:11px;letter-spacing:.1em">nenhuma entrada ainda</div></div>
+    </div>
+  </div>
+  <nav class="bottom-nav">
+    <div class="nav-item" onclick="goTo('home')"><svg viewBox="0 0 20 20" fill="none"><path d="M3 9l7-7 7 7v9H13v-5H7v5H3z" stroke="#B86038" stroke-width="1" stroke-linejoin="round"/></svg><span class="nav-label" style="color:var(--terra)">início</span></div>
+    <div class="nav-item" onclick="goTo('registrar')"><svg viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="#9C7A5A" stroke-width="1"/><line x1="7" y1="8" x2="13" y2="8" stroke="#9C7A5A" stroke-width="1"/><line x1="7" y1="11" x2="11" y2="11" stroke="#9C7A5A" stroke-width="1"/></svg><span class="nav-label">registrar</span></div>
+    <div class="nav-item" onclick="goTo('historico')"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#9C7A5A" stroke-width="1"/><path d="M10 6v4l2.5 2" stroke="#9C7A5A" stroke-width="1" stroke-linecap="round"/></svg><span class="nav-label">histórico</span></div>
+    <div class="nav-item" onclick="goTo('analytics')"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="12" width="3" height="5" rx="1" stroke="#9C7A5A" stroke-width="1"/><rect x="8.5" y="7" width="3" height="10" rx="1" stroke="#9C7A5A" stroke-width="1"/><rect x="14" y="4" width="3" height="13" rx="1" stroke="#9C7A5A" stroke-width="1"/></svg><span class="nav-label">analytics</span></div>
+  </nav>
+</div>
+
+<!-- REGISTRAR -->
+<div class="screen" id="registrar">
+  <div style="padding:52px 20px 16px;flex-shrink:0">
+    <div style="display:flex;align-items:center;margin-bottom:16px"><div class="back-btn" onclick="goTo('home')">‹</div><div style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;letter-spacing:.15em;color:var(--ink);text-transform:lowercase">registrar</div></div>
+    <div class="section-label">como você está agora?</div>
+    <div class="mood-row">
+      <div class="mood-btn" onclick="selectMood(this,'😞')"><div>😞</div><div class="mood-label">péssimo</div></div>
+      <div class="mood-btn" onclick="selectMood(this,'😕')"><div>😕</div><div class="mood-label">ruim</div></div>
+      <div class="mood-btn selected" onclick="selectMood(this,'😐')"><div>😐</div><div class="mood-label">ok</div></div>
+      <div class="mood-btn" onclick="selectMood(this,'🙂')"><div>🙂</div><div class="mood-label">bem</div></div>
+      <div class="mood-btn" onclick="selectMood(this,'😄')"><div>😄</div><div class="mood-label">ótimo</div></div>
+    </div>
+  </div>
+  <div class="screen-body">
+    <div class="section-label">o que está na sua cabeça?</div>
+    <textarea class="entry" id="entry-text" placeholder="escreva livremente... o aurim escuta sem julgamento" oninput="detectCategory(this.value)"></textarea>
+    <div id="category-display" style="min-height:24px"></div>
+    <div class="divider"></div>
+    <div class="section-label" style="text-align:center">ou fale em voz alta</div>
+    <div style="display:flex;justify-content:center;margin:12px 0 20px">
+      <button class="voice-btn" id="voice-btn" onclick="toggleVoice(this)">
+        <svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" stroke="white" stroke-width="1.2"/><path d="M5 11a7 7 0 0 0 14 0" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke="white" stroke-width="1.2"/><line x1="9" y1="22" x2="15" y2="22" stroke="white" stroke-width="1.2"/></svg>
+      </button>
+    </div>
+    <button class="btn-primary" id="btn-salvar" onclick="saveEntry()">salvar entrada</button>
+  </div>
+</div>
+
+<!-- HISTORICO -->
+<div class="screen" id="historico">
+  <div style="padding:52px 20px 16px;flex-shrink:0">
+    <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;letter-spacing:.15em;color:var(--ink);text-transform:lowercase">histórico</div>
+    <div style="font-size:11px;letter-spacing:.1em;color:var(--ink3);margin-top:4px;font-weight:200">todas as suas entradas</div>
+  </div>
+  <div class="screen-body"><div id="historico-list"><div style="text-align:center;padding:30px;color:var(--ink3);font-size:11px"><span class="spinner spinner-t" style="display:block;margin:0 auto 12px;width:16px;height:16px"></span>carregando...</div></div></div>
+  <nav class="bottom-nav">
+    <div class="nav-item" onclick="goTo('home')"><svg viewBox="0 0 20 20" fill="none"><path d="M3 9l7-7 7 7v9H13v-5H7v5H3z" stroke="#9C7A5A" stroke-width="1" stroke-linejoin="round"/></svg><span class="nav-label">início</span></div>
+    <div class="nav-item" onclick="goTo('registrar')"><svg viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="#9C7A5A" stroke-width="1"/><line x1="7" y1="8" x2="13" y2="8" stroke="#9C7A5A" stroke-width="1"/><line x1="7" y1="11" x2="11" y2="11" stroke="#9C7A5A" stroke-width="1"/></svg><span class="nav-label">registrar</span></div>
+    <div class="nav-item" style="opacity:1" onclick="goTo('historico')"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#B86038" stroke-width="1"/><path d="M10 6v4l2.5 2" stroke="#B86038" stroke-width="1" stroke-linecap="round"/></svg><span class="nav-label" style="color:var(--terra)">histórico</span></div>
+    <div class="nav-item" onclick="goTo('analytics')"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="12" width="3" height="5" rx="1" stroke="#9C7A5A" stroke-width="1"/><rect x="8.5" y="7" width="3" height="10" rx="1" stroke="#9C7A5A" stroke-width="1"/><rect x="14" y="4" width="3" height="13" rx="1" stroke="#9C7A5A" stroke-width="1"/></svg><span class="nav-label">analytics</span></div>
+  </nav>
+</div>
+
+<!-- ANALYTICS -->
+<div class="screen" id="analytics">
+  <div style="padding:52px 20px 16px;flex-shrink:0">
+    <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;letter-spacing:.15em;color:var(--ink);text-transform:lowercase">analytics</div>
+    <div id="analytics-month" style="font-size:11px;letter-spacing:.1em;color:var(--ink3);margin-top:4px;font-weight:200"></div>
+  </div>
+  <div class="screen-body">
+    <div class="section-label">linha do tempo</div>
+    <div class="card" style="padding:14px 12px"><div class="timeline-row" id="timeline-row"></div></div>
+    <div class="section-label" style="margin-top:16px">onde sua vida acontece</div>
+    <div class="card" id="cat-bars"><div style="color:var(--ink3);font-size:11px;text-align:center;padding:8px">nenhuma entrada ainda</div></div>
+    <div class="section-label" style="margin-top:16px">humor médio</div>
+    <div class="card" style="text-align:center;padding:20px"><div class="score-big" id="humor-medio">—</div><div class="score-label">de 10 · este ciclo</div></div>
+    <div style="margin-top:6px"><button class="btn-primary" onclick="goTo('diagnostico')">gerar diagnóstico completo</button></div>
+  </div>
+  <nav class="bottom-nav">
+    <div class="nav-item" onclick="goTo('home')"><svg viewBox="0 0 20 20" fill="none"><path d="M3 9l7-7 7 7v9H13v-5H7v5H3z" stroke="#9C7A5A" stroke-width="1" stroke-linejoin="round"/></svg><span class="nav-label">início</span></div>
+    <div class="nav-item" onclick="goTo('registrar')"><svg viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="#9C7A5A" stroke-width="1"/><line x1="7" y1="8" x2="13" y2="8" stroke="#9C7A5A" stroke-width="1"/><line x1="7" y1="11" x2="11" y2="11" stroke="#9C7A5A" stroke-width="1"/></svg><span class="nav-label">registrar</span></div>
+    <div class="nav-item" onclick="goTo('historico')"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#9C7A5A" stroke-width="1"/><path d="M10 6v4l2.5 2" stroke="#9C7A5A" stroke-width="1" stroke-linecap="round"/></svg><span class="nav-label">histórico</span></div>
+    <div class="nav-item" onclick="goTo('analytics')"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="12" width="3" height="5" rx="1" stroke="#B86038" stroke-width="1"/><rect x="8.5" y="7" width="3" height="10" rx="1" stroke="#B86038" stroke-width="1"/><rect x="14" y="4" width="3" height="13" rx="1" stroke="#B86038" stroke-width="1"/></svg><span class="nav-label" style="color:var(--terra)">analytics</span></div>
+  </nav>
+</div>
+
+<!-- DIAGNOSTICO PERMA -->
+<div class="screen" id="diagnostico">
+  <div style="padding:52px 20px 0;display:flex;align-items:center;flex-shrink:0">
+    <div class="back-btn" onclick="goTo('home')">‹</div>
+    <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;letter-spacing:.15em;color:var(--ink);text-transform:lowercase">diagnóstico</div>
+    <div class="chip" style="margin-left:auto;font-size:9px" id="diag-mes"></div>
+  </div>
+  <div class="screen-body" style="padding-top:16px" id="diag-body">
+    <div style="text-align:center;padding:40px;color:var(--ink3);font-size:11px;letter-spacing:.1em"><span class="spinner spinner-t" style="display:block;margin:0 auto 12px;width:16px;height:16px"></span>analisando...</div>
+  </div>
+</div>
+
+<!-- CARTA -->
+<div class="screen" id="carta">
+  <div style="padding:52px 20px 0;display:flex;align-items:center;flex-shrink:0">
+    <div class="back-btn" onclick="goTo('home')">‹</div>
+    <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;letter-spacing:.15em;color:var(--ink);text-transform:lowercase">carta para mim</div>
+  </div>
+  <div class="screen-body" style="padding-top:16px">
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;line-height:1.75;color:var(--ink2);margin-bottom:20px">Escreva o que você quer mudar — na sua vida pessoal, profissional, em você mesmo. No 7º dia, o aurim te devolve seu primeiro espelho: o que você quis versus o que realmente aconteceu.</div>
+    <div class="section-label" id="carta-mes-label">sua intenção</div>
+    <textarea id="carta-text" style="width:100%;min-height:180px;background:var(--white);border:none;border-radius:14px;padding:16px;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:300;color:var(--ink);resize:none;outline:none;line-height:1.8;font-style:italic" placeholder="Caro eu...&#10;&#10;Nos próximos 30 dias quero..."></textarea>
+    <div style="display:flex;justify-content:center;margin:16px 0">
+      <button class="voice-btn" style="width:52px;height:52px" id="carta-voice-btn" onclick="toggleVoiceCarta(this)">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" stroke="white" stroke-width="1.2"/><path d="M5 11a7 7 0 0 0 14 0" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke="white" stroke-width="1.2"/><line x1="9" y1="22" x2="15" y2="22" stroke="white" stroke-width="1.2"/></svg>
+      </button>
+    </div>
+    <button class="btn-primary" onclick="salvarCarta()">guardar carta</button>
+    <div style="font-size:10px;color:var(--ink3);text-align:center;margin-top:12px;line-height:1.7;font-weight:200">sua carta fica guardada até o 30º dia.<br>no dia da revelação, ela volta pra você.</div>
+  </div>
+</div>
+
+<!-- TELA DE REVELAÇÃO -->
+<div class="screen" id="revelacao" style="background:var(--ink)">
+  <!-- Fase 1: abertura -->
+  <div id="rev-fase1" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;background:var(--ink)">
+    <div style="opacity:0;animation:floatUp 1s ease forwards .2s">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+        <rect x="4" y="18" width="56" height="38" rx="6" stroke="#C8983A" stroke-width="1.5"/>
+        <path d="M4 24l28 18 28-18" stroke="#C8983A" stroke-width="1.5"/>
+        <path d="M22 18V12a10 10 0 0 1 20 0v6" stroke="#C8983A" stroke-width="1.5"/>
+        <circle cx="32" cy="38" r="6" fill="#C8983A" opacity=".3"/>
+        <circle cx="32" cy="38" r="3" fill="#C8983A"/>
+      </svg>
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:var(--white);text-align:center;line-height:1.4;margin-top:28px;opacity:0;animation:fadeUp .8s ease forwards .7s">seu espelho<br>chegou</div>
+    <div style="font-size:11px;letter-spacing:.2em;color:rgba(245,239,228,.45);text-align:center;margin-top:10px;opacity:0;animation:fadeUp .8s ease forwards 1s">7 dias de jornada beta</div>
+    <div style="opacity:0;animation:fadeUp .8s ease forwards 1.5s;width:100%;margin-top:40px">
+      <button class="btn-gold" onclick="mostrarRevelacaoCompleta()" style="color:var(--ink);font-weight:400">abrir meu espelho</button>
+    </div>
+  </div>
+  <!-- Fase 2: conteúdo completo -->
+  <div id="rev-fase2" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:var(--ink)">
+    <div style="padding:52px 20px 0;display:flex;align-items:center;flex-shrink:0">
+      <div class="back-btn" style="color:var(--gold)" onclick="goTo('home')">‹</div>
+      <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:20px;letter-spacing:.15em;color:var(--white);text-transform:lowercase">seu espelho</div>
+      <div id="rev-dias-badge" style="margin-left:auto;background:rgba(200,152,58,.2);border-radius:20px;padding:4px 12px;font-size:9px;letter-spacing:.12em;color:var(--gold)"></div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 20px 32px" id="rev-content">
+      <div style="text-align:center;padding:40px;color:rgba(245,239,228,.4);font-size:11px"><span class="spinner" style="display:block;margin:0 auto 12px;width:16px;height:16px"></span>gerando seu espelho...</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PERFIL -->
+<div class="screen" id="perfil">
+  <div style="padding:52px 20px 0;display:flex;align-items:center;flex-shrink:0">
+    <div class="back-btn" onclick="goTo('home')">‹</div>
+    <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:22px;letter-spacing:.15em;color:var(--ink);text-transform:lowercase">perfil</div>
+  </div>
+  <div class="screen-body" style="padding-top:20px">
+    <!-- Avatar -->
+    <div style="display:flex;align-items:center;gap:14px;background:var(--white);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgba(184,96,56,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="#B86038" stroke-width="1.2"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#B86038" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div id="perfil-nome" style="font-size:15px;letter-spacing:.05em;color:var(--ink);font-weight:300"></div>
+        <div id="perfil-email" style="font-size:11px;color:var(--ink3);font-weight:200;margin-top:2px"></div>
+      </div>
+      <div id="perfil-plano-chip" class="chip" style="margin-left:auto;font-size:9px"></div>
+    </div>
+
+    <!-- Notificações -->
+    <div class="section-label">lembrete diário</div>
+    <div style="background:var(--white);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="font-size:20px;flex-shrink:0">🔔</div>
+        <div>
+          <div style="font-size:13px;letter-spacing:.05em;color:var(--ink);font-weight:300;margin-bottom:4px">notificação diária</div>
+          <div style="font-size:11px;color:var(--ink3);line-height:1.6;font-weight:200">em breve — disponível na versão completa do app.<br>por enquanto, salve <span style="color:var(--terra);font-weight:300">aurim.vercel.app</span> nos favoritos e crie o hábito de abrir todo dia.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jornada -->
+    <div class="section-label">sua jornada</div>
+    <div style="background:var(--white);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-around;text-align:center">
+        <div><div id="perf-total-entradas" style="font-family:'Jost',sans-serif;font-weight:100;font-size:32px;color:var(--terra)">0</div><div style="font-size:9px;letter-spacing:.12em;color:var(--ink3)">entradas</div></div>
+        <div style="width:.5px;background:rgba(44,26,14,.08)"></div>
+        <div><div id="perf-dias-reg" style="font-family:'Jost',sans-serif;font-weight:100;font-size:32px;color:var(--terra)">0</div><div style="font-size:9px;letter-spacing:.12em;color:var(--ink3)">dias</div></div>
+        <div style="width:.5px;background:rgba(44,26,14,.08)"></div>
+        <div><div id="perf-ciclo" style="font-family:'Jost',sans-serif;font-weight:100;font-size:32px;color:var(--terra)">1</div><div style="font-size:9px;letter-spacing:.12em;color:var(--ink3)">ciclo</div></div>
+      </div>
+    </div>
+
+    <!-- Âncora -->
+    <!-- Modo -->
+    <div class="section-label">modo de experiência</div>
+    <div style="background:var(--white);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div id="perfil-modo-display" style="font-size:13px;color:var(--ink);font-weight:300"></div>
+        <div style="font-size:10px;color:var(--terra);cursor:pointer;font-weight:300;letter-spacing:.08em" onclick="alterarModo()">alterar →</div>
+      </div>
+      <div id="modo-edit-block" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px" id="modo-grid-perfil">
+          <div class="area-card" data-modo="leve" onclick="selecionarModoPerfil(this)" style="padding:12px;text-align:center">
+            <div style="font-size:18px;margin-bottom:4px">🌱</div>
+            <div style="font-size:11px;color:var(--ink2)">leve e progressivo</div>
+          </div>
+          <div class="area-card" data-modo="direto" onclick="selecionarModoPerfil(this)" style="padding:12px;text-align:center">
+            <div style="font-size:18px;margin-bottom:4px">⚡</div>
+            <div style="font-size:11px;color:var(--ink2)">direto e sem filtro</div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="salvarModoPerfil()" style="font-size:12px;padding:10px">salvar modo</button>
+      </div>
+    </div>
+
+    <div class="section-label">âncora do ciclo</div>
+    <div style="background:var(--white);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+      <div id="perfil-ancora" style="font-size:14px;letter-spacing:.08em;color:var(--ink);font-weight:300"></div>
+      <div style="font-size:10px;color:var(--terra);cursor:pointer;font-weight:300;letter-spacing:.08em" onclick="alterarAncora()">alterar →</div>
+    </div>
+    <div id="ancora-edit-block" style="display:none;background:var(--white);border-radius:14px;padding:14px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px" id="area-grid-perfil">
+        <div class="area-card" data-area="carreira" onclick="selecionarAreaPerfil(this)" style="padding:10px"><div class="area-card-icon" style="font-size:18px;margin-bottom:4px">💼</div><div class="area-card-name">carreira</div></div>
+        <div class="area-card" data-area="saúde" onclick="selecionarAreaPerfil(this)" style="padding:10px"><div class="area-card-icon" style="font-size:18px;margin-bottom:4px">🌿</div><div class="area-card-name">saúde</div></div>
+        <div class="area-card" data-area="relacionamentos" onclick="selecionarAreaPerfil(this)" style="padding:10px"><div class="area-card-icon" style="font-size:18px;margin-bottom:4px">🤝</div><div class="area-card-name">relacionamentos</div></div>
+        <div class="area-card" data-area="família" onclick="selecionarAreaPerfil(this)" style="padding:10px"><div class="area-card-icon" style="font-size:18px;margin-bottom:4px">🏠</div><div class="area-card-name">família</div></div>
+        <div class="area-card" data-area="finanças" onclick="selecionarAreaPerfil(this)" style="padding:10px"><div class="area-card-icon" style="font-size:18px;margin-bottom:4px">💰</div><div class="area-card-name">finanças</div></div>
+        <div class="area-card" data-area="propósito" onclick="selecionarAreaPerfil(this)" style="padding:10px"><div class="area-card-icon" style="font-size:18px;margin-bottom:4px">✨</div><div class="area-card-name">propósito</div></div>
+      </div>
+      <button class="btn-primary" onclick="salvarAncoraPerfil()" style="font-size:12px;padding:10px">salvar âncora</button>
+    </div>
+
+    <!-- Carta -->
+    <div class="section-label">sua carta atual</div>
+    <div style="background:var(--white);border-radius:14px;padding:16px;margin-bottom:16px;cursor:pointer" onclick="goTo('carta')">
+      <div id="perfil-carta-preview" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:var(--ink2);line-height:1.7">nenhuma carta escrita ainda</div>
+      <div style="font-size:10px;color:var(--terra);margin-top:8px;letter-spacing:.1em">editar carta →</div>
+    </div>
+
+    <!-- Parceiro -->
+    <div class="section-label">modo parceiro</div>
+    <div id="perfil-partner-section" style="background:var(--white);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div id="perfil-partner-content">
+        <div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:12px;font-weight:300">faça a jornada junto com alguém. vocês veem o progresso um do outro sem ler as entradas.</div>
+        <div class="section-label">seu código de convite</div>
+        <div class="code-box" id="meu-codigo" onclick="copiarCodigo()">...</div>
+        <div style="font-size:10px;color:var(--ink3);text-align:center;margin-bottom:14px;font-weight:200">toque para copiar e enviar para seu parceiro</div>
+        <div class="section-label">código do parceiro</div>
+        <input class="code-input" id="codigo-parceiro-input" placeholder="XXXXXX" maxlength="6" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn-primary" onclick="vincularParceiro()" style="font-size:12px;padding:10px">vincular parceiro</button>
+      </div>
+    </div>
+
+    <!-- Sair -->
+    <div style="height:8px"></div>
+    <button class="btn-outline" onclick="sairDaConta()">sair da conta</button>
+    <div style="height:24px"></div>
+  </div>
+</div>
+
+<!-- MODAL PLANOS -->
+<div class="modal-overlay" id="modal-planos" onclick="closePlanos(event)">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
+
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:24px;padding-top:4px">
+      <div style="font-size:10px;letter-spacing:.25em;color:var(--terra);margin-bottom:8px;font-weight:300">você já viu o padrão</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;line-height:1.4;color:var(--ink)">A pergunta é: você vai<br>mudar… ou repetir?</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:8px;line-height:1.6;font-weight:200">Em 7 dias você percebeu coisas que levariam meses.<br>Sem continuidade, isso some.</div>
+    </div>
+
+    <!-- Gratuito -->
+    <div class="plan-card" style="opacity:.75;margin-bottom:12px">
+      <div style="font-size:12px;letter-spacing:.12em;font-weight:300;color:var(--ink2);margin-bottom:4px">continuar limitado</div>
+      <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:26px;color:var(--ink2)">R$ 0</div>
+      <div style="font-size:11px;color:var(--ink3);line-height:2;margin-top:10px;font-weight:200">
+        ✔ 1 ciclo de 7 dias<br>
+        ✔ acesso ao espelho final<br>
+        <span style="color:rgba(44,26,14,.3)">✖ sem acompanhamento entre ciclos<br>
+        ✖ sem evolução comparada<br>
+        ✖ sem histórico de padrões</span>
+      </div>
+      <div style="font-size:10px;color:var(--ink3);font-style:italic;margin-top:10px;text-align:center;letter-spacing:.05em">bom pra testar. não pra mudar.</div>
+    </div>
+
+    <!-- Essencial -->
+    <div class="plan-card" style="border-color:var(--terra);background:rgba(184,96,56,.04);margin-bottom:8px">
+      <div style="display:inline-block;background:var(--terra);color:white;border-radius:20px;padding:2px 12px;font-size:9px;letter-spacing:.12em;margin-bottom:8px">mais escolhido</div>
+      <div style="font-size:12px;letter-spacing:.12em;font-weight:300;color:var(--ink);margin-bottom:4px">essencial</div>
+      <div style="font-size:10px;color:var(--ink3);margin-bottom:10px;font-weight:200">consistência e clareza contínua</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
+        <div>
+          <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:30px;color:var(--terra)">R$ 9,90<span style="font-size:13px;color:var(--ink3)">/mês</span></div>
+        </div>
+        <div style="flex:1;text-align:right">
+          <div style="font-size:9px;letter-spacing:.1em;color:var(--gold);font-weight:300">ou R$ 97/ano</div>
+          <div style="font-size:9px;color:var(--ink3);font-weight:200">2 meses grátis</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--ink2);line-height:2;font-weight:200">
+        ✔ ciclos ilimitados de 7 dias<br>
+        ✔ histórico contínuo dos seus padrões<br>
+        ✔ comparação entre ciclos e evolução real<br>
+        ✔ foco em 1 área por vez<br>
+        ✔ o app aprende com seu comportamento
+      </div>
+      <button class="btn-primary" style="margin-top:14px;font-size:13px" onclick="closePlanos()">quero continuar evoluindo — R$ 9,90/mês</button>
+      <button class="btn-outline" style="margin-top:8px;font-size:12px" onclick="closePlanos()">plano anual — R$ 97/ano · 2 meses grátis</button>
+    </div>
+
+    <!-- Vida Completa -->
+    <div class="plan-card" style="margin-bottom:16px">
+      <div style="font-size:12px;letter-spacing:.12em;font-weight:300;color:var(--ink);margin-bottom:4px">vida completa</div>
+      <div style="font-size:10px;color:var(--ink3);margin-bottom:10px;font-weight:200">mudança estrutural na sua vida</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
+        <div>
+          <div style="font-family:'Jost',sans-serif;font-weight:100;font-size:30px;color:var(--terra)">R$ 29,90<span style="font-size:13px;color:var(--ink3)">/mês</span></div>
+        </div>
+        <div style="flex:1;text-align:right">
+          <div style="font-size:9px;letter-spacing:.1em;color:var(--gold);font-weight:300">ou R$ 197/ano</div>
+          <div style="font-size:9px;color:var(--ink3);font-weight:200">2 meses grátis</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--ink2);line-height:2;font-weight:200">
+        ✔ todas as áreas da sua vida conectadas<br>
+        ✔ memória completa do seu comportamento<br>
+        ✔ padrões detectados ao longo de semanas<br>
+        ✔ evolução real entre ciclos<br>
+        ✔ alertas quando você começa a se repetir
+      </div>
+      <button class="btn-primary" style="margin-top:14px;font-size:13px;background:var(--ink)" onclick="closePlanos()">quero mudar de verdade — R$ 29,90/mês</button>
+      <button class="btn-outline" style="margin-top:8px;font-size:12px" onclick="closePlanos()">plano anual — R$ 197/ano · 2 meses grátis</button>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center;padding:8px 0 4px">
+      <div style="font-size:11px;color:var(--ink);font-weight:300;line-height:1.6;margin-bottom:6px;font-style:italic">Você já tem consciência. O que define<br>sua vida agora é o que você faz com isso.</div>
+      <div style="font-size:11px;color:var(--ink3);font-weight:200;font-style:italic;margin-bottom:4px">sem acompanhamento, você volta pro padrão em dias.</div>
+      <div style="font-size:10px;color:var(--ink3);font-weight:200">sem compromisso · cancele quando quiser · seu progresso é mantido</div>
+    </div>
+
+  </div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+<script>
+var firebaseConfig={apiKey:"AIzaSyACFBbpVdjvkSnHl8eZHM18SzrtsgH0jPQ",authDomain:"aurim-app.firebaseapp.com",projectId:"aurim-app",storageBucket:"aurim-app.firebasestorage.app",messagingSenderId:"832548942575",appId:"1:832548942575:web:817312fc809115a6ec211a"};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
+
+var CLAUDE_API="https://api.anthropic.com/v1/messages";
+var currentUser=null, allEntries=[], cartaAtual=null, currentMood='😐', isRecording=false, recognition=null, detectTimer=null;
+var moodValues={'😄':10,'🙂':7.5,'😐':5,'😕':2.5,'😞':0};
+var moodColors={'😄':'#B86038','🙂':'#C8983A','😐':'#9C7A5A','😕':'rgba(44,26,14,0.28)','😞':'rgba(44,26,14,0.13)'};
+var meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+var mesesFull=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+var diasSemana=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+  var s=document.getElementById(id); if(s) s.classList.add('active');
+  if(id==='home'){
+    renderHomeDate();
+    renderHomeEntries();
+    renderProgresso30();
+    // Reload entries from Firebase silently
+    loadEntries().then(function(){
+      renderHomeEntries();
+      renderProgresso30();
+      calcScores();
+      verificarSubidaNivel();
+      detectarPadraoRecorrente();
+      renderParceiroHome();
+      verificarConfronto();
+      gerarInsightDia();
+    });
+  }
+  if(id==='historico') renderHistorico();
+  if(id==='analytics') renderAnalytics();
+  if(id==='diagnostico') renderDiagnostico();
+  if(id==='carta') renderCarta();
+  if(id==='revelacao') iniciarRevelacao();
+  if(id==='perfil'){renderPerfil();renderParceiroPerfil();}
+}
+
+function renderHomeDate(){
+  var d=new Date();
+  document.getElementById('home-date').textContent=diasSemana[d.getDay()]+', '+d.getDate()+' de '+mesesFull[d.getMonth()];
+}
+
+
+
+
+
+
+
+// ==================== INSIGHT D1 PÓS CARTA ====================
+async function gerarInsightD1(textoCarta){
+  if(!currentUser) return;
+  var jaGerou = localStorage.getItem('aurim_insight_d1_'+currentUser.id);
+  if(jaGerou) return;
+  var ancora = currentUser.ancora || 'carreira';
+  try{
+    var r = await fetch('/api/claude',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        messages:[{role:'user', content:'Você é o Aurim. Leia essa carta de intenção e gere um insight provocador em 1-2 linhas que mostre a tensão entre o que a pessoa quer e o que provavelmente acontece. Tom: direto, empático, memorável. Formato: "Você quer X, mas [observação sobre o padrão provável]". Responda APENAS a frase.\n\nCarta:\n'+textoCarta+'\n\nÂncora: '+ancora}]
+      })
+    });
+    var data = await r.json();
+    var frase = data.content&&data.content[0]?data.content[0].text.trim():'';
+    if(frase){
+      localStorage.setItem('aurim_insight_d1_'+currentUser.id, frase);
+      // Mostra como toast especial após 2s
+      setTimeout(function(){
+        showInsightD1Modal(frase);
+      }, 2000);
+    }
+  }catch(e){console.error(e)}
+}
+
+
+function fecharModalFixo(el){
+  var p = el;
+  while(p && p.style && !p.style.position.includes('fixed')){p=p.parentElement;}
+  if(p) p.remove();
+}
+
+function showInsightD1Modal(frase){
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,4,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .3s ease';
+  modal.innerHTML =
+    '<div style="background:var(--ink);border-radius:20px;padding:28px;max-width:340px;width:100%;position:relative">'+
+      '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--terra),var(--gold));border-radius:20px 20px 0 0"></div>'+
+      '<div style="font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:14px">aurim leu sua carta</div>'+
+      '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:20px;line-height:1.6;color:rgba(245,239,228,.95);margin-bottom:20px">'+frase+'</div>'+
+      '<div style="font-size:11px;color:rgba(245,239,228,.45);line-height:1.6;margin-bottom:20px">esse é o padrão que vamos acompanhar nos próximos 7 dias.</div>'+
+      '<button onclick="fecharModalFixo(this)" style="background:var(--terra);color:white;border:none;border-radius:30px;padding:12px;font-family:Jost,sans-serif;font-size:12px;letter-spacing:.1em;cursor:pointer;width:100%">entendido — vamos começar</button>'+
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+
+// ==================== DETECTOR DE PADRÃO RECORRENTE ====================
+function detectarPadraoRecorrente(){
+  if(!currentUser || allEntries.length < 3) return;
+  var block = document.getElementById('insight-dia-block');
+  if(!block || block.style.display !== 'none') return; // já tem insight
+
+  // Conta palavras/temas recorrentes nas últimas entradas
+  var textos = allEntries.slice(0,7).map(function(e){return e.text.toLowerCase()});
+  var temas = {
+    'cansaço': ['cansad','cansaço','exaust','sem energia','não consig'],
+    'procrastinação': ['deixei','deixar','adiou','depois','amanhã','não fiz'],
+    'trabalho': ['trabalh','reunião','tarefa','projeto','chefe','cliente'],
+    'ansiedade': ['ansios','preocup','nervos','estress'],
+    'foco': ['distrai','foco','concentr','atenção'],
+    'família': ['família','filho','filha','mãe','pai','casa'],
+  };
+
+  var contagem = {};
+  Object.keys(temas).forEach(function(tema){
+    var count = 0;
+    textos.forEach(function(t){
+      temas[tema].forEach(function(kw){
+        if(t.includes(kw)) count++;
+      });
+    });
+    if(count >= 2) contagem[tema] = count;
+  });
+
+  var topTema = Object.keys(contagem).sort(function(a,b){return contagem[b]-contagem[a]})[0];
+  if(!topTema) return;
+
+  var qtd = contagem[topTema];
+  if(qtd < 2) return;
+
+  // Mostra card de padrão recorrente
+  block.style.display = 'block';
+  block.innerHTML =
+    '<div style="background:var(--white);border-radius:14px;padding:14px 16px">'+
+      '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">'+
+        '<div style="font-size:18px;flex-shrink:0">🔄</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:9px;letter-spacing:.15em;color:var(--terra);margin-bottom:4px">padrão recorrente identificado</div>'+
+          '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:14px;line-height:1.5;color:var(--ink)">esse é o '+qtd+'º dia em que <strong>'+topTema+'</strong> aparece nas suas entradas.</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--ink3);line-height:1.6;font-weight:200;padding-top:8px;border-top:.5px solid rgba(44,26,14,.06)">padrões que se repetem costumam ter uma raiz. vale prestar atenção.</div>'+
+    '</div>';
+}
+
+// ==================== INSIGHT DO DIA ====================
+async function gerarInsightDia(){
+  if(!currentUser || allEntries.length < 1) return;
+  var block = document.getElementById('insight-dia-block');
+  if(!block) return;
+
+  // Check if already generated today
+  var hoje = new Date().toDateString();
+  var cached = localStorage.getItem('aurim_insight_'+currentUser.id+'_'+hoje);
+  if(cached){
+    renderInsightCard(cached);
+    return;
+  }
+
+  // Only generate if 2+ entries
+  if(allEntries.length < 2) return;
+
+  var texts = allEntries.slice(0,5).map(function(e){return e.date.substring(0,10)+': '+e.text.substring(0,100);}).join('\n');
+  var ancora = currentUser.ancora || 'carreira';
+
+  try{
+    var r = await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:'Você é o Aurim. Analise as entradas recentes e gere 1 insight do dia — uma frase forte e personalizada de até 15 palavras que faz a pessoa parar e pensar. Deve soar como se o app "lembrou" de algo que a pessoa disse. Âncora: '+ancora+'. Responda APENAS JSON:\n{"insight":"frase de até 15 palavras","tipo":"progresso|padrao|reflexao"}\n\nEntradas:\n'+texts}]
+      })
+    });
+    var data = await r.json();
+    var raw = data.content&&data.content[0]?data.content[0].text:'';
+    var obj = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    localStorage.setItem('aurim_insight_'+currentUser.id+'_'+hoje, obj.insight);
+    renderInsightCard(obj.insight);
+  }catch(e){console.error(e)}
+}
+
+function renderInsightCard(insight){
+  var block = document.getElementById('insight-dia-block');
+  if(!block) return;
+  block.style.display = 'block';
+  block.innerHTML =
+    '<div style="background:var(--white);border-radius:14px;padding:14px 16px">'+
+      '<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">'+
+        '<div style="font-size:20px;flex-shrink:0">💡</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:9px;letter-spacing:.15em;color:var(--gold);margin-bottom:4px">insight do dia</div>'+
+          '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:14px;line-height:1.5;color:var(--ink)">'+insight+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:.5px solid rgba(44,26,14,.06)">'+
+        '<span style="font-size:10px;color:var(--ink3);font-weight:200">se isso te pegou, manda pra alguém</span>'+
+        '<button onclick="compartilharInsightAtual()" style="background:var(--terra);color:white;border:none;border-radius:20px;padding:5px 14px;font-family:Jost,sans-serif;font-size:10px;letter-spacing:.08em;cursor:pointer">↗ compartilhar</button>'+
+      '</div>'+
+    '</div>';
+}
+
+
+function compartilharInsightAtual(){
+  compartilharInsight(window._insightAtual||'');
+}
+
+function compartilharInsight(insight){
+  var texto = '"'+insight+'"\n\nesse insight veio do Aurim — app que usa suas próprias palavras pra mostrar onde você está se sabotando.\n\naurim.vercel.app';
+  if(navigator.share){
+    navigator.share({title:'Aurim — insight do dia',text:texto}).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(texto).then(function(){showToast('copiado — cole onde quiser ✓')});
+  }
+}
+
+// ==================== SCORES ====================
+function calcScores(){
+  if(!currentUser || allEntries.length === 0) return;
+  var diasTotal = calcDiasDesdeInicio();
+  if(diasTotal === 0) return;
+
+  // Consistência: dias registrados / dias totais
+  var diasReg = calcDiasRegistrados();
+  var consistencia = Math.round((diasReg / Math.max(diasTotal, 1)) * 100);
+
+  // Alinhamento: baseado nas tags que coincidem com a âncora
+  var ancora = currentUser.ancora || 'carreira';
+  var entradasComAncora = allEntries.filter(function(e){
+    return (e.tags&&e.tags.includes(ancora)) || (e.category===ancora);
+  }).length;
+  var alinhamento = allEntries.length > 0 ? Math.round((entradasComAncora/allEntries.length)*100) : 0;
+
+  // Tendência: comparar última semana com semana anterior
+  var agora = new Date();
+  var semanaPassada = allEntries.filter(function(e){
+    var d = new Date(e.date);
+    return (agora - d) < 7*24*60*60*1000;
+  }).length;
+  var semanaAnterior = allEntries.filter(function(e){
+    var d = new Date(e.date);
+    var diff = agora - d;
+    return diff >= 7*24*60*60*1000 && diff < 14*24*60*60*1000;
+  }).length;
+
+  var tendencia = '→';
+  if(semanaPassada > semanaAnterior) tendencia = '↑';
+  else if(semanaPassada < semanaAnterior && semanaAnterior > 0) tendencia = '↓';
+
+  var elC = document.getElementById('score-consistencia');
+  var elA = document.getElementById('score-alinhamento');
+  var elT = document.getElementById('score-tendencia');
+  if(elC) elC.textContent = consistencia+'%';
+  if(elA) elA.textContent = alinhamento+'%';
+  if(elT){
+    elT.textContent = tendencia;
+    elT.style.color = tendencia==='↑'?'var(--terra)':tendencia==='↓'?'#c0392b':'var(--ink2)';
+  }
+}
+
+// ==================== MISSÃO PÓS D7 ====================
+async function gerarMissaoPosD7(){
+  if(!currentUser) return;
+  var block = document.getElementById('confronto-home-block');
+  if(!block) return;
+  var diasTotal = calcDiasDesdeInicio();
+  if(diasTotal < 7) return;
+  var jaGerou = localStorage.getItem('aurim_missao_'+currentUser.id+'_ciclo'+(currentUser.ciclo||1));
+  if(jaGerou){
+    renderMissaoCard(jaGerou);
+    return;
+  }
+
+  var texts = allEntries.slice(0,10).map(function(e){return e.text.substring(0,80);}).join(' | ');
+  var ancora = currentUser.ancora || 'carreira';
+
+  try{
+    var r = await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:'Você é o Aurim. O usuário completou 7 dias. Crie a missão dele para os próximos 7 dias — 1 comportamento específico para interromper baseado nos padrões identificados. Âncora: '+ancora+'. Responda APENAS JSON:\n{"missao":"uma frase curta de missão específica","padrao_interromper":"o padrão recorrente identificado em 1 linha"}\n\nEntradas:\n'+texts}]
+      })
+    });
+    var data = await r.json();
+    var raw = data.content&&data.content[0]?data.content[0].text:'';
+    var obj = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    var missaoText = obj.missao+'||'+obj.padrao_interromper;
+    localStorage.setItem('aurim_missao_'+currentUser.id+'_ciclo'+(currentUser.ciclo||1), missaoText);
+    renderMissaoCard(missaoText);
+  }catch(e){console.error(e)}
+}
+
+function renderMissaoCard(text){
+  var block = document.getElementById('confronto-home-block');
+  if(!block) return;
+  var parts = text.split('||');
+  var missao = parts[0];
+  var padrao = parts[1]||'';
+  block.style.display = 'block';
+  block.innerHTML =
+    '<div style="background:var(--ink);border-radius:16px;padding:18px;position:relative;overflow:hidden;margin-bottom:10px">'+
+      '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--terra),var(--gold))"></div>'+
+      '<div style="font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px">padrão identificado · beta concluído</div>'+
+      (padrao?'<div style="font-size:11px;color:rgba(245,239,228,.45);margin-bottom:8px;font-weight:200;line-height:1.5">'+padrao+'</div>':'')+
+      '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:18px;line-height:1.6;color:rgba(245,239,228,.9);margin-bottom:16px">'+missao+'</div>'+
+      '<div style="background:rgba(245,239,228,.06);border-radius:10px;padding:12px;margin-bottom:14px">'+
+        '<div style="font-size:9px;letter-spacing:.15em;color:var(--gold);margin-bottom:10px">você completou o beta · o que vem agora</div>'+
+        '<div style="display:flex;flex-direction:column;gap:8px">'+
+          '<div style="display:flex;align-items:center;gap:10px">'+
+            '<div style="width:24px;height:24px;border-radius:50%;background:var(--terra);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;flex-shrink:0;font-family:Jost,sans-serif">✓</div>'+
+            '<div><div style="font-size:11px;color:rgba(245,239,228,.9);font-weight:300">7 dias</div><div style="font-size:10px;color:rgba(245,239,228,.45)">ver o padrão — concluído</div></div>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:10px">'+
+            '<div style="width:24px;height:24px;border-radius:50%;border:.5px solid rgba(200,152,58,.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(200,152,58,.8);flex-shrink:0;font-family:Jost,sans-serif">2</div>'+
+            '<div><div style="font-size:11px;color:rgba(245,239,228,.9);font-weight:300">30 dias</div><div style="font-size:10px;color:rgba(245,239,228,.45)">interromper o padrão</div></div>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:10px">'+
+            '<div style="width:24px;height:24px;border-radius:50%;border:.5px solid rgba(245,239,228,.15);display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(245,239,228,.3);flex-shrink:0;font-family:Jost,sans-serif">3</div>'+
+            '<div><div style="font-size:11px;color:rgba(245,239,228,.5);font-weight:300">90 dias</div><div style="font-size:10px;color:rgba(245,239,228,.3)">mudar… ou confirmar quem você é</div></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<button onclick="abrirPlanos()" style="background:var(--gold);color:var(--ink);border:none;border-radius:30px;padding:12px 20px;font-family:Jost,sans-serif;font-weight:400;font-size:13px;letter-spacing:.1em;cursor:pointer;width:100%;margin-bottom:8px">ver planos e continuar</button>'+
+      '<button onclick="iniciarProximos30()" style="background:transparent;border:.5px solid rgba(245,239,228,.2);color:rgba(245,239,228,.45);border-radius:30px;padding:10px;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.1em;cursor:pointer;width:100%">continuar no plano gratuito</button>'+
+    '</div>';
+}
+
+
+// ==================== CELEBRAÇÃO E REFLEXÃO (modo leve) ====================
+
+function renderCelebracaoCard(dia){
+  var block = document.getElementById('confronto-home-block');
+  if(!block) return;
+  var diasReg = calcDiasRegistrados();
+  var streak = calcStreak(allEntries);
+  var ancora = currentUser.ancora || 'carreira';
+
+  var msgs = {
+    1: {
+      titulo: 'você começou. isso já é raro.',
+      texto: 'A maioria das pessoas pensa em mudar mas não dá o primeiro passo. Você deu. Sem acompanhamento, o padrão volta em dias. Você está no caminho certo.',
+      micro: 'dia 1 registrado'
+    },
+    2: {
+      titulo: diasReg >= 2 ? 'dois dias seguidos. você está criando algo.' : 'você voltou. isso importa.',
+      texto: diasReg >= 2 ? 'Consistência é mais rara do que talento. Você já está na frente de quem só pensa em começar.' : 'Nem todo dia vai ser perfeito — o que importa é voltar. E você voltou.',
+      micro: diasReg + ' dias registrados'
+    },
+    3: {
+      titulo: streak >= 3 ? '3 dias seguidos — você não está mais no automático.' : 'você está construindo consciência.',
+      texto: streak >= 3 ? 'Você já está vendo seu dia de forma diferente. Isso é o começo de uma mudança real.' : 'Cada entrada é um ato de atenção sobre si mesmo. Você já está mais consciente do que ontem.',
+      micro: streak + ' dias de streak · ' + ancora
+    }
+  };
+
+  var m = msgs[Math.min(dia, 3)] || msgs[3];
+
+  block.innerHTML =
+    '<div style="background:rgba(200,152,58,.08);border:.5px solid rgba(200,152,58,.2);border-radius:16px;padding:18px;position:relative;overflow:hidden">'+
+      '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--terra))"></div>'+
+      '<div style="font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px">'+m.micro+'</div>'+
+      '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:17px;line-height:1.6;color:var(--ink);margin-bottom:10px">'+m.titulo+'</div>'+
+      '<div style="font-size:12px;color:var(--ink3);line-height:1.7;font-weight:200">'+m.texto+'</div>'+
+      '<div style="margin-top:12px;display:flex;justify-content:flex-end"><div style="font-size:10px;color:var(--terra);cursor:pointer;letter-spacing:.08em" onclick="dispensarCard('+dia+')">ok, entendi →</div></div>'+
+    '</div>';
+
+  localStorage.setItem('aurim_confronto_'+currentUser.id+'_dia'+dia, '1');
+}
+
+async function gerarReflexaoCard(dia){
+  var block = document.getElementById('confronto-home-block');
+  if(!block) return;
+
+  block.innerHTML =
+    '<div style="background:rgba(184,96,56,.06);border:.5px solid rgba(184,96,56,.2);border-radius:16px;padding:18px;position:relative;overflow:hidden">'+
+      '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--terra),var(--gold))"></div>'+
+      '<div style="font-size:9px;letter-spacing:.2em;color:var(--terra);margin-bottom:10px">dia '+dia+' · uma pergunta pra você</div>'+
+      '<div style="text-align:center;padding:12px 0"><span class="spinner spinner-t" style="display:inline-block;width:14px;height:14px"></span></div>'+
+    '</div>';
+
+  var textosEntradas = allEntries.slice(0,dia).map(function(e){return e.date.substring(0,10)+': '+e.text;}).join('\n');
+  var ancora = currentUser.ancora || 'carreira';
+
+  try{
+    var r = await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:'Você é o Aurim. Analise as entradas do diário e gere UMA pergunta de reflexão gentil e inteligente — não confronto, mas uma observação curiosa que faz a pessoa pensar. Tom: coach empático, não julgador. Âncora: '+ancora+'. Responda APENAS JSON:\n{"pergunta":"pergunta de reflexão gentil de 1-2 linhas","observacao":"observação positiva de 1 linha sobre o padrão que está aparecendo"}\n\nEntradas:\n'+textosEntradas}]
+      })
+    });
+    var data = await r.json();
+    var raw = data.content&&data.content[0]?data.content[0].text:'';
+    var ref = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    block.innerHTML =
+      '<div style="background:rgba(184,96,56,.06);border:.5px solid rgba(184,96,56,.2);border-radius:16px;padding:18px;position:relative;overflow:hidden">'+
+        '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--terra),var(--gold))"></div>'+
+        '<div style="font-size:9px;letter-spacing:.2em;color:var(--terra);margin-bottom:10px">dia '+dia+' · reflexão</div>'+
+        '<div style="font-size:11px;color:var(--ink3);font-style:italic;margin-bottom:10px;line-height:1.6">'+ref.observacao+'</div>'+
+        '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:17px;line-height:1.6;color:var(--ink);margin-bottom:14px">'+ref.pergunta+'</div>'+
+        '<textarea style="width:100%;background:var(--white);border:.5px solid rgba(44,26,14,.1);border-radius:10px;padding:12px;font-family:Jost,sans-serif;font-size:13px;font-weight:300;color:var(--ink);resize:none;outline:none;line-height:1.6;min-height:70px" id="reflexao-resposta" placeholder="o que vem à mente?"></textarea>'+
+        '<button onclick="salvarReflexao('+dia+')" style="background:var(--terra);color:white;border:none;border-radius:30px;padding:10px 20px;font-family:Jost,sans-serif;font-weight:300;font-size:12px;letter-spacing:.1em;cursor:pointer;margin-top:10px;width:100%">registrar reflexão</button>'+
+      '</div>';
+
+    localStorage.setItem('aurim_confronto_'+currentUser.id+'_dia'+dia, '1');
+  }catch(e){
+    block.style.display='none';
+    console.error(e);
+  }
+}
+
+async function salvarReflexao(dia){
+  var input = document.getElementById('reflexao-resposta');
+  if(!input||!input.value.trim()){showToast('escreva algo primeiro');return;}
+  var texto = input.value.trim();
+  var entry={text:texto,mood:currentMood,category:currentUser.ancora||'reflexão',tags:[currentUser.ancora||'reflexão','reflexão'],date:new Date().toISOString(),userId:currentUser.id,tipo:'reflexao_dia_'+dia};
+  try{
+    await db.collection('users').doc(currentUser.id).collection('entries').add(entry);
+    allEntries.unshift(entry);
+    var block = document.getElementById('confronto-home-block');
+    if(block){
+      block.innerHTML =
+        '<div style="background:rgba(200,152,58,.06);border:.5px solid rgba(200,152,58,.15);border-radius:16px;padding:16px;text-align:center">'+
+          '<div style="font-size:16px;margin-bottom:8px">✦</div>'+
+          '<div style="font-size:12px;color:var(--ink3);font-weight:200;line-height:1.6">reflexão registrada. você está prestando atenção em si mesmo.</div>'+
+        '</div>';
+    }
+    showToast('reflexão salva ✓');
+  }catch(e){showToast('erro ao salvar')}
+}
+
+function dispensarCard(dia){
+  var block = document.getElementById('confronto-home-block');
+  if(block) block.style.display='none';
+}
+
+// ==================== CONFRONTO ATIVO ====================
+var confrontoAtivo = null;
+
+function deveConfrontar(){
+  if(!currentUser || !cartaAtual) return false;
+  var diasTotal = calcDiasDesdeInicio();
+  return (diasTotal === 3 || diasTotal === 5 || diasTotal === 7);
+}
+
+function confrontoJaVisto(dia){
+  return localStorage.getItem('aurim_confronto_'+currentUser.id+'_dia'+dia) === '1';
+}
+
+async function verificarConfronto(){
+  var block = document.getElementById('confronto-home-block');
+  if(!block || !currentUser) return;
+  var diasTotal = calcDiasDesdeInicio();
+  var modo = currentUser.modo || 'leve';
+
+  // Modo leve: D1-D3 celebração, D4-D5 reflexão, D6-D7 confronto
+  // Modo direto: D3, D5, D7 confronto
+  var deveAtuar = false;
+  var tipoAcao = 'celebracao';
+
+  if(modo === 'direto'){
+    if(diasTotal === 3 || diasTotal === 5 || diasTotal === 7) deveAtuar = true;
+    tipoAcao = 'confronto';
+  } else {
+    if(diasTotal >= 1 && diasTotal <= 3){ deveAtuar = true; tipoAcao = 'celebracao'; }
+    else if(diasTotal === 4 || diasTotal === 5){ deveAtuar = true; tipoAcao = 'reflexao'; }
+    else if(diasTotal === 6 || diasTotal === 7){ deveAtuar = true; tipoAcao = 'confronto'; }
+  }
+
+  if(!deveAtuar){
+    // D7+ sem confronto pendente — gerar missão pós ciclo
+    if(diasTotal >= 7) gerarMissaoPosD7();
+    return;
+  }
+  if(confrontoJaVisto(diasTotal)) return;
+
+  // Celebração não precisa de carta
+  if(tipoAcao === 'confronto' && !cartaAtual) return;
+
+  block.style.display = 'block';
+
+  if(tipoAcao === 'celebracao'){
+    renderCelebracaoCard(diasTotal);
+    return;
+  }
+  if(tipoAcao === 'reflexao'){
+    await gerarReflexaoCard(diasTotal);
+    return;
+  }
+
+  // Mostra loading
+  block.style.display = 'block';
+  block.innerHTML = '<div class="confronto-card"><div class="confronto-label">aurim está analisando sua jornada...</div><div style="display:flex;justify-content:center;padding:12px 0"><span class="spinner" style="display:inline-block"></span></div></div>';
+
+  var textosCarta = cartaAtual ? cartaAtual.text : '';
+  var textosEntradas = allEntries.slice(0, diasTotal).map(function(e){ return e.date.substring(0,10)+': '+e.text; }).join('\n');
+  var ancora = currentUser.ancora || 'carreira';
+
+  try{
+    var r = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          content: 'Você é o Aurim, app de coaching pessoal. Analise a carta de intenção e as entradas de diário. Identifique o GAP mais importante entre o que a pessoa prometeu e o que está vivendo. Gere uma observação direta mas empática — como um coach que usa as palavras da própria pessoa. Tom: honesto sem ser agressivo. Use linguagem empática: talvez, parece que, você percebeu que. Âncora: '+ancora+'. Dia '+diasTotal+' do ciclo.\n\nResponda APENAS JSON:\n{"provocacao": "pergunta direta de 1-2 linhas", "gap_identificado": "o que prometeu vs o que aparece"}\n\nCARTA:\n'+textosCarta+'\n\nENTRADAS:\n'+textosEntradas
+        }]
+      })
+    });
+    var data = await r.json();
+    var raw = data.content && data.content[0] ? data.content[0].text : '';
+    var confronto = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    confrontoAtivo = {dia: diasTotal, provocacao: confronto.provocacao, gap: confronto.gap_identificado};
+    renderConfrontoCard(confrontoAtivo);
+  }catch(e){
+    block.style.display = 'none';
+    console.error(e);
+  }
+}
+
+function renderConfrontoCard(c){
+  var block = document.getElementById('confronto-home-block');
+  if(!block) return;
+  block.style.display = 'block';
+  block.innerHTML =
+    '<div class="confronto-card" id="confronto-card-inner">'+
+      '<div class="confronto-label">dia '+c.dia+' · uma observação sobre você</div>'+
+      '<div class="confronto-text">'+c.provocacao+'</div>'+
+      '<textarea class="confronto-input" id="confronto-resposta" placeholder="o que está passando pela sua cabeça agora?"></textarea>'+
+      '<button class="confronto-btn" onclick="responderConfronto()">responder</button>'+
+    '</div>';
+}
+
+async function responderConfronto(){
+  var resposta = document.getElementById('confronto-resposta');
+  if(!resposta || !resposta.value.trim()){ showToast('escreva sua resposta'); return; }
+  var texto = resposta.value.trim();
+  var btn = document.querySelector('.confronto-btn');
+  if(btn){ btn.disabled=true; btn.textContent='analisando...'; }
+
+  // Salva resposta como entrada especial
+  var entry = {
+    text: texto,
+    mood: currentMood,
+    category: currentUser.ancora || 'reflexão',
+    tags: [currentUser.ancora||'reflexão', 'confronto'],
+    date: new Date().toISOString(),
+    userId: currentUser.id,
+    tipo: 'confronto_dia_'+confrontoAtivo.dia
+  };
+  try{
+    await db.collection('users').doc(currentUser.id).collection('entries').add(entry);
+    allEntries.unshift(entry);
+  }catch(e){}
+
+  // Gera mini diagnóstico
+  try{
+    var r = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: 'Você é o Aurim. O usuário respondeu ao confronto do dia '+confrontoAtivo.dia+'. Gere um mini diagnóstico honesto, encorajador e sem julgamento em português. Foque no que a pessoa pode fazer, não no que errou. Responda APENAS JSON:\n{"diagnostico": "2-3 linhas de insight", "proximo_passo": "uma ação concreta para hoje"}\n\nGAP: '+confrontoAtivo.gap+'\n\nRESPOSTA: '+texto
+        }]
+      })
+    });
+    var data = await r.json();
+    var raw = data.content && data.content[0] ? data.content[0].text : '';
+    var mini = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    // Mostra mini diagnóstico
+    var card = document.getElementById('confronto-card-inner');
+    if(card){
+      card.innerHTML =
+        '<div class="confronto-label">dia '+confrontoAtivo.dia+' · você refletiu ✓</div>'+
+        '<div class="confronto-text" style="font-size:14px;margin-bottom:10px">'+confrontoAtivo.provocacao+'</div>'+
+        '<div class="confronto-mini-diag">'+
+          '<div class="confronto-mini-label">mini diagnóstico</div>'+
+          '<div class="confronto-mini-text">'+mini.diagnostico+'</div>'+
+        '</div>'+
+        '<div class="confronto-mini-diag" style="margin-top:8px;border-color:rgba(184,96,56,.4)">'+
+          '<div class="confronto-mini-label" style="color:var(--terra)">próximo passo</div>'+
+          '<div class="confronto-mini-text">'+mini.proximo_passo+'</div>'+
+        '</div>';
+    }
+
+    // Marca como visto
+    localStorage.setItem('aurim_confronto_'+currentUser.id+'_dia'+confrontoAtivo.dia, '1');
+
+  }catch(e){
+    showToast('erro ao gerar diagnóstico');
+    if(btn){ btn.disabled=false; btn.textContent='responder'; }
+  }
+}
+
+// ==================== MODO PARCEIRO ====================
+var parceiroDados = null;
+
+function gerarCodigo(userId){
+  // Gera código de 6 chars baseado no userId
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var hash = 0;
+  for(var i=0;i<userId.length;i++) hash = ((hash<<5)-hash)+userId.charCodeAt(i);
+  var code = '';
+  var h = Math.abs(hash);
+  for(var i=0;i<6;i++){ code += chars[h%chars.length]; h=Math.floor(h/chars.length)||Math.abs(hash^(i*7919)); }
+  return code;
+}
+
+async function renderParceiroPerfil(){
+  if(!currentUser) return;
+  var meuCodigo = gerarCodigo(currentUser.id);
+  var elCodigo = document.getElementById('meu-codigo');
+  if(elCodigo) elCodigo.textContent = meuCodigo;
+
+  // Salva meu código no Firebase para ser encontrado pelo parceiro
+  try{
+    await db.collection('codigos').doc(meuCodigo).set({userId: currentUser.id, nome: currentUser.nome.split(' ')[0], updatedAt: new Date().toISOString()});
+  }catch(e){}
+
+  // Se já tem parceiro, mostra info do parceiro
+  if(currentUser.parceiroId){
+    renderParceiroVinculado();
+  }
+}
+
+function copiarCodigo(){
+  var code = document.getElementById('meu-codigo').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(code).then(function(){showToast('código copiado ✓')});
+  } else {
+    showToast('código: '+code);
+  }
+}
+
+async function vincularParceiro(){
+  var codigo = document.getElementById('codigo-parceiro-input').value.trim().toUpperCase();
+  if(codigo.length !== 6){ showToast('código deve ter 6 caracteres'); return; }
+  var meuCodigo = gerarCodigo(currentUser.id);
+  if(codigo === meuCodigo){ showToast('esse é o seu próprio código'); return; }
+
+  try{
+    var doc = await db.collection('codigos').doc(codigo).get();
+    if(!doc.exists){ showToast('código não encontrado'); return; }
+    var parceiroId = doc.data().userId;
+    var parceiroNome = doc.data().nome || 'parceiro';
+
+    // Vincula nos dois lados
+    await db.collection('users').doc(currentUser.id).update({parceiroId: parceiroId, parceiroNome: parceiroNome});
+    await db.collection('users').doc(parceiroId).update({parceiroId: currentUser.id, parceiroNome: currentUser.nome.split(' ')[0]});
+
+    currentUser.parceiroId = parceiroId;
+    currentUser.parceiroNome = parceiroNome;
+    localStorage.setItem('aurim_user', JSON.stringify(currentUser));
+
+    showToast(parceiroNome+' vinculado ✦');
+    renderParceiroVinculado();
+    renderParceiroHome();
+  }catch(e){
+    console.error(e);
+    showToast('erro ao vincular');
+  }
+}
+
+async function renderParceiroVinculado(){
+  var sec = document.getElementById('perfil-partner-content');
+  if(!sec || !currentUser.parceiroId) return;
+  try{
+    var parceiroUser = await db.collection('users').doc(currentUser.parceiroId).get();
+    if(!parceiroUser.exists) return;
+    var p = parceiroUser.data();
+    var parceiroEntradas = await db.collection('users').doc(currentUser.parceiroId).collection('entries').orderBy('date','desc').limit(50).get();
+    var pEntries = parceiroEntradas.docs.map(function(d){return d.data()});
+    var pDiasReg = new Set(pEntries.map(function(e){var d=new Date(e.date);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()})).size;
+    var pInicio = p.createdAt ? new Date(p.createdAt) : new Date();
+    var pDiasTotal = Math.max(1, Math.floor((new Date()-pInicio)/(1000*60*60*24))+1);
+    var pPct = Math.min(100, Math.round((pDiasTotal/7)*100));
+    var pStreak = calcStreakFromEntries(pEntries);
+    var ancIcons = {carreira:'💼',saúde:'🌿',relacionamentos:'🤝',família:'🏠',finanças:'💰',propósito:'✨'};
+    var pIcon = ancIcons[p.ancora||'propósito']||'✨';
+
+    sec.innerHTML =
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'+
+        '<div class="partner-avatar">'+pIcon+'</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:14px;letter-spacing:.05em;color:var(--ink);font-weight:300">'+(p.nome||currentUser.parceiroNome||'parceiro')+'</div>'+
+          '<div style="font-size:10px;color:var(--ink3);margin-top:2px">'+(p.ancora||'propósito')+' · '+pStreak+' dias seguidos</div>'+
+        '</div>'+
+        '<div style="text-align:right">'+
+          '<div style="font-size:9px;letter-spacing:.1em;color:var(--ink3)">progresso</div>'+
+          '<div style="font-family:Jost,sans-serif;font-weight:100;font-size:20px;color:var(--terra)">'+pDiasReg+'/7</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="partner-bar-track"><div class="partner-bar-fill" style="width:'+pPct+'%"></div></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:6px">'+
+        '<span style="font-size:10px;color:var(--ink3)">'+pDiasReg+' dias registrados</span>'+
+        '<span style="font-size:10px;color:var(--ink3)">dia '+Math.min(pDiasTotal,7)+' de 7</span>'+
+      '</div>'+
+      '<div style="margin-top:12px;padding-top:12px;border-top:.5px solid rgba(44,26,14,.06)">'+
+        '<button class="btn-outline" onclick="desvincularParceiro()" style="font-size:11px;padding:8px">desvincular parceiro</button>'+
+      '</div>';
+  }catch(e){console.error(e)}
+}
+
+function calcStreakFromEntries(entries){
+  if(!entries.length) return 0;
+  var sorted=entries.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date)});
+  var today=new Date(); today.setHours(0,0,0,0);
+  var d0=new Date(sorted[0].date); d0.setHours(0,0,0,0);
+  if(today.getTime()-d0.getTime()>172800000) return 0;
+  var streak=1;
+  for(var i=1;i<sorted.length;i++){
+    var da=new Date(sorted[i-1].date); da.setHours(0,0,0,0);
+    var db2=new Date(sorted[i].date); db2.setHours(0,0,0,0);
+    if(da.getTime()-db2.getTime()===86400000) streak++; else break;
+  }
+  return streak;
+}
+
+async function renderParceiroHome(){
+  var block = document.getElementById('partner-home-block');
+  if(!block || !currentUser || !currentUser.parceiroId) return;
+  block.style.display = 'block';
+  try{
+    var parceiroUser = await db.collection('users').doc(currentUser.parceiroId).get();
+    if(!parceiroUser.exists){block.style.display='none';return;}
+    var p = parceiroUser.data();
+    var pEntradas = await db.collection('users').doc(currentUser.parceiroId).collection('entries').orderBy('date','desc').limit(30).get();
+    var pEntries = pEntradas.docs.map(function(d){return d.data()});
+    var pDiasReg = new Set(pEntries.map(function(e){var d=new Date(e.date);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()})).size;
+    var pInicio = p.createdAt ? new Date(p.createdAt) : new Date();
+    var pDiasTotal = Math.max(1,Math.floor((new Date()-pInicio)/(1000*60*60*24))+1);
+    var pPct = Math.min(100,Math.round((pDiasTotal/7)*100));
+    var ancIcons = {carreira:'💼',saúde:'🌿',relacionamentos:'🤝',família:'🏠',finanças:'💰',propósito:'✨'};
+    var pIcon = ancIcons[p.ancora||'propósito']||'✨';
+    var pStreak = calcStreakFromEntries(pEntries);
+
+    var meuStreak = calcStreak(allEntries);
+    var meuDiasReg = calcDiasRegistrados();
+    var pressao = '';
+    if(pStreak > meuStreak && meuStreak >= 0) pressao = '<div style="font-size:10px;color:var(--terra);font-weight:300;margin-top:6px;padding-top:6px;border-top:.5px solid rgba(44,26,14,.06)">'+( p.nome?p.nome.split(' ')[0]:currentUser.parceiroNome)+' manteve o ritmo. você ficou pra trás.</div>';
+    else if(pDiasReg > meuDiasReg) pressao = '<div style="font-size:10px;color:var(--terra);font-weight:300;margin-top:6px;padding-top:6px;border-top:.5px solid rgba(44,26,14,.06)">'+( p.nome?p.nome.split(' ')[0]:currentUser.parceiroNome)+' já registrou mais dias que você.</div>';
+    else if(meuDiasReg > pDiasReg) pressao = '<div style="font-size:10px;color:var(--gold);font-weight:300;margin-top:6px;padding-top:6px;border-top:.5px solid rgba(44,26,14,.06)">você está à frente. continue assim.</div>';
+    block.innerHTML =
+      '<div class="partner-card">'+
+        '<div style="font-size:9px;letter-spacing:.15em;color:var(--ink3);margin-bottom:10px">parceiro de jornada</div>'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div class="partner-avatar" style="width:32px;height:32px;font-size:14px">'+pIcon+'</div>'+
+          '<div style="flex:1">'+
+            '<div style="font-size:13px;color:var(--ink);font-weight:300">'+(p.nome||currentUser.parceiroNome)+'</div>'+
+            '<div style="font-size:10px;color:var(--ink3);margin-top:1px">'+pStreak+' dias seguidos · '+(p.ancora||'jornada')+'</div>'+
+          '</div>'+
+          '<div style="text-align:right">'+
+            '<div style="font-family:Jost,sans-serif;font-weight:100;font-size:18px;color:var(--gold)">'+pDiasReg+'<span style="font-size:11px;color:var(--ink3)">/7</span></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="partner-bar-track"><div class="partner-bar-fill" style="width:'+pPct+'%"></div></div>'+
+      '</div>';
+    block.querySelector('.partner-card').insertAdjacentHTML('beforeend', pressao);
+  }catch(e){block.style.display='none';}
+}
+
+async function desvincularParceiro(){
+  if(!confirm('Desvincular parceiro?')) return;
+  try{
+    if(currentUser.parceiroId){
+      await db.collection('users').doc(currentUser.parceiroId).update({parceiroId:null,parceiroNome:null});
+    }
+    await db.collection('users').doc(currentUser.id).update({parceiroId:null,parceiroNome:null});
+    currentUser.parceiroId=null; currentUser.parceiroNome=null;
+    localStorage.setItem('aurim_user',JSON.stringify(currentUser));
+    document.getElementById('partner-home-block').style.display='none';
+    renderParceiroPerfil();
+    showToast('parceiro desvinculado');
+  }catch(e){showToast('erro ao desvincular')}
+}
+
+// ==================== ÂNCORA ====================
+var ancoraSelecionada = 'carreira';
+
+
+
+function alterarAncora(){
+  var block = document.getElementById('ancora-edit-block');
+  if(!block) return;
+  var showing = block.style.display !== 'none';
+  block.style.display = showing ? 'none' : 'block';
+  if(!showing){
+    // Mark current area as selected
+    var area = currentUser.ancora || 'carreira';
+    document.querySelectorAll('#area-grid-perfil .area-card').forEach(function(c){
+      c.classList.toggle('selected', c.dataset.area === area);
+    });
+  }
+}
+
+function selecionarAreaPerfil(card){
+  document.querySelectorAll('#area-grid-perfil .area-card').forEach(function(c){c.classList.remove('selected')});
+  card.classList.add('selected');
+  ancoraSelecionada = card.dataset.area;
+}
+
+async function salvarAncoraPerfil(){
+  if(!currentUser) return;
+  try{
+    await db.collection('users').doc(currentUser.id).update({ancora: ancoraSelecionada});
+    currentUser.ancora = ancoraSelecionada;
+    localStorage.setItem('aurim_user', JSON.stringify(currentUser));
+    document.getElementById('ancora-edit-block').style.display = 'none';
+    renderAncoraPerfil();
+    var ancEl = document.getElementById('home-ancora');
+    var ancIcons = {carreira:'💼',saúde:'🌿',relacionamentos:'🤝',família:'🏠',finanças:'💰',propósito:'✨'};
+    if(ancEl) ancEl.textContent = (ancIcons[ancoraSelecionada]||'✨')+' '+ancoraSelecionada;
+    showToast('âncora atualizada ✓');
+  }catch(e){showToast('erro ao salvar')}
+}
+
+
+var horaRitual = '21:00';
+
+function selecionarRitual(chip){
+  document.querySelectorAll('#ritual-grid .hora-chip').forEach(function(c){c.classList.remove('selected')});
+  chip.classList.add('selected');
+  horaRitual = chip.dataset.hora;
+}
+
+var modoSelecionado = 'leve';
+
+function selecionarModo(card){
+  document.querySelectorAll('#modo-grid .area-card').forEach(function(c){c.classList.remove('selected')});
+  card.classList.add('selected');
+  modoSelecionado = card.dataset.modo;
+}
+
+function selecionarAreaAncora(card){
+  document.querySelectorAll('#area-grid-ancora .area-card').forEach(function(c){c.classList.remove('selected')});
+  card.classList.add('selected');
+  ancoraSelecionada = card.dataset.area;
+}
+
+async function confirmarAncora(){
+  if(!currentUser) return;
+  try{
+    await db.collection('users').doc(currentUser.id).update({ancora: ancoraSelecionada, modo: modoSelecionado, horaRitual: horaRitual});
+    localStorage.setItem('aurim_notif_hora_'+currentUser.id, horaRitual);
+    currentUser.ancora = ancoraSelecionada;
+    currentUser.modo = modoSelecionado;
+    localStorage.setItem('aurim_user', JSON.stringify(currentUser));
+    goTo('home');
+  }catch(e){
+    console.error(e);
+    goTo('home');
+  }
+}
+
+function selecionarArea(card){
+  document.querySelectorAll('.area-card').forEach(function(c){c.classList.remove('selected')});
+  card.classList.add('selected');
+  ancoraSelecionada = card.dataset.area;
+}
+
+function renderAncoraPerfil(){
+  var el = document.getElementById('perfil-ancora');
+  if(!el || !currentUser) return;
+  var area = currentUser.ancora || 'carreira';
+  var icons = {carreira:'💼', saúde:'🌿', relacionamentos:'🤝', família:'🏠', finanças:'💰', propósito:'✨'};
+  el.innerHTML = '<span style="font-size:16px;margin-right:6px">'+(icons[area]||'✨')+'</span>'+area;
+}
+
+// ==================== PERFIL ====================
+
+function alterarModo(){
+  var block = document.getElementById('modo-edit-block');
+  if(!block) return;
+  var showing = block.style.display !== 'none';
+  block.style.display = showing ? 'none' : 'block';
+  if(!showing){
+    var modo = currentUser.modo || 'leve';
+    document.querySelectorAll('#modo-grid-perfil .area-card').forEach(function(c){
+      c.classList.toggle('selected', c.dataset.modo === modo);
+    });
+  }
+}
+
+function selecionarModoPerfil(card){
+  document.querySelectorAll('#modo-grid-perfil .area-card').forEach(function(c){c.classList.remove('selected')});
+  card.classList.add('selected');
+  modoSelecionado = card.dataset.modo;
+}
+
+async function salvarModoPerfil(){
+  if(!currentUser) return;
+  try{
+    await db.collection('users').doc(currentUser.id).update({modo: modoSelecionado});
+    currentUser.modo = modoSelecionado;
+    localStorage.setItem('aurim_user', JSON.stringify(currentUser));
+    document.getElementById('modo-edit-block').style.display = 'none';
+    renderModoPerfil();
+    showToast('modo atualizado ✓');
+  }catch(e){showToast('erro ao salvar')}
+}
+
+function renderModoPerfil(){
+  var el = document.getElementById('perfil-modo-display');
+  if(!el||!currentUser) return;
+  var modo = currentUser.modo || 'leve';
+  el.textContent = modo === 'leve' ? '🌱 leve e progressivo' : '⚡ direto e sem filtro';
+}
+
+function renderPerfil(){
+  if(!currentUser) return;
+  document.getElementById('perfil-nome').textContent=currentUser.nome||'';
+  document.getElementById('perfil-email').textContent=currentUser.email||'';
+  document.getElementById('perfil-plano-chip').textContent=currentUser.plano||'gratuito';
+  document.getElementById('perf-total-entradas').textContent=allEntries.length;
+  document.getElementById('perf-dias-reg').textContent=calcDiasRegistrados();
+  document.getElementById('perf-ciclo').textContent=currentUser.ciclo||1;
+
+  // Âncora
+  renderAncoraPerfil();
+  renderModoPerfil();
+
+  // Carta preview
+  if(cartaAtual&&cartaAtual.text){
+    var preview=cartaAtual.text.substring(0,100)+(cartaAtual.text.length>100?'...':'');
+    document.getElementById('perfil-carta-preview').textContent=preview;
+  }
+
+  // Notificação
+  var horaGuardada=localStorage.getItem('aurim_notif_hora_'+currentUser.id)||'21:00';
+  var notifAtiva=localStorage.getItem('aurim_notif_ativa_'+currentUser.id)==='1';
+  var toggle=document.getElementById('notif-toggle');
+  var slider=document.getElementById('notif-slider');
+  toggle.checked=notifAtiva;
+  slider.style.background=notifAtiva?'var(--terra)':'rgba(44,26,14,.15)';
+  document.getElementById('notif-hora-block').style.display=notifAtiva?'block':'none';
+
+  // Seleciona hora ativa
+  document.querySelectorAll('.hora-chip').forEach(function(c){
+    c.classList.toggle('selected', c.dataset.hora===horaGuardada);
+  });
+  atualizarStatusNotif(horaGuardada, notifAtiva);
+}
+
+function toggleNotificacao(checkbox){
+  var slider=document.getElementById('notif-slider');
+  var horaBlock=document.getElementById('notif-hora-block');
+  if(checkbox.checked){
+    pedirPermissaoNotificacao().then(function(){
+      if(Notification.permission==='granted'){
+        slider.style.background='var(--terra)';
+        horaBlock.style.display='block';
+        localStorage.setItem('aurim_notif_ativa_'+currentUser.id,'1');
+        var hora=localStorage.getItem('aurim_notif_hora_'+currentUser.id)||'21:00';
+        agendarLembreteDiario();
+        atualizarStatusNotif(hora, true);
+        showToast('lembrete ativado ✓');
+      } else {
+        checkbox.checked=false;
+        slider.style.background='rgba(44,26,14,.15)';
+        showToast('permissão de notificação negada');
+      }
+    });
+  } else {
+    slider.style.background='rgba(44,26,14,.15)';
+    horaBlock.style.display='none';
+    localStorage.setItem('aurim_notif_ativa_'+currentUser.id,'0');
+    showToast('lembrete desativado');
+  }
+}
+
+function selecionarHora(chip){
+  document.querySelectorAll('.hora-chip').forEach(function(c){c.classList.remove('selected')});
+  chip.classList.add('selected');
+  var hora=chip.dataset.hora;
+  localStorage.setItem('aurim_notif_hora_'+currentUser.id, hora);
+  agendarLembreteDiario();
+  atualizarStatusNotif(hora, true);
+  showToast('lembrete para as '+hora+' ✓');
+}
+
+function atualizarStatusNotif(hora, ativa){
+  var el=document.getElementById('notif-status-text');
+  if(!el) return;
+  el.textContent=ativa?'você será lembrado todos os dias às '+hora:'';
+}
+
+function sairDaConta(){
+  if(!confirm('Sair da conta? Suas entradas ficam salvas no Firebase.')) return;
+  localStorage.removeItem('aurim_user');
+  currentUser=null; allEntries=[]; cartaAtual=null;
+  goTo('onboarding');
+}
+
+// ==================== LÓGICA 30 DIAS ====================
+function calcDiasDesdeInicio(){
+  if(!currentUser||!currentUser.createdAt) return 1;
+  var inicio=new Date(currentUser.createdAt);
+  var hoje=new Date();
+  var diff=Math.floor((hoje-inicio)/(1000*60*60*24));
+  return Math.max(1, diff+1);
+}
+
+function calcDiasRegistrados(){
+  var diasUnicos=new Set();
+  allEntries.forEach(function(e){
+    var d=new Date(e.date);
+    diasUnicos.add(d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate());
+  });
+  return diasUnicos.size;
+}
+
+function renderProgresso30(){
+  if(!currentUser) return;
+  var diasTotal=calcDiasDesdeInicio();
+  var diasReg=calcDiasRegistrados();
+  var pct=Math.min(100, Math.round((diasTotal/7)*100));
+  var atingiu=diasTotal>=7;
+
+  var bloco=document.getElementById('progress-30-block');
+  if(bloco) bloco.style.display='block';
+
+  setTimeout(function(){
+    var fill=document.getElementById('prog-fill');
+    if(fill){fill.style.width=pct+'%';if(atingiu)fill.style.background='var(--gold)';}
+  },120);
+
+  var badge=document.getElementById('prog-badge');
+  var daysDone=document.getElementById('prog-days-done');
+  if(badge) badge.textContent=atingiu?'7 dias ❆':'dia '+diasTotal+' de 7';
+  if(daysDone) daysDone.textContent=diasReg+' dia'+(diasReg!==1?'s':'')+' registrado'+(diasReg!==1?'s':'');
+
+  if(atingiu){
+    var cta=document.getElementById('prog-cta');
+    if(cta) cta.style.display='block';
+    verificarNotificacao30();
+  }
+
+  if(cartaAtual){
+    var cl=document.getElementById('carta-status-label');
+    if(cl) cl.textContent='carta escrita ✓';
+  }
+}
+
+function getTextoNotificacao(){
+  if(!currentUser) return {title:'aurim', body:'O que merece ser registrado hoje?'};
+  var diasTotal = calcDiasDesdeInicio();
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var registrouHoje = allEntries.some(function(e){
+    var d=new Date(e.date); d.setHours(0,0,0,0);
+    return d.getTime()===hoje.getTime();
+  });
+  var diasSemRegistro = 0;
+  for(var i=1;i<=3;i++){
+    var d=new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    var temEntrada=allEntries.some(function(e){var ed=new Date(e.date);ed.setHours(0,0,0,0);return ed.getTime()===d.getTime();});
+    if(!temEntrada) diasSemRegistro++; else break;
+  }
+  var temParceiro = !!(currentUser.parceiroId);
+
+  // D7 — espelho
+  if(diasTotal>=7){
+    var textos7=[
+      {title:'Seu espelho está pronto',body:'Agora você vai ver de verdade.'},
+      {title:'Aqui está o que você fez',body:'Sem filtro. Está pronto.'},
+      {title:'Você pediu clareza — aqui está',body:'Isso vai te mostrar tudo.'},
+      {title:'Esse é o momento real',body:'Você já pode ver o padrão completo.'}
+    ];
+    return textos7[Math.floor(Math.random()*textos7.length)];
+  }
+
+  // D6 — antecipação
+  if(diasTotal===6){
+    var textos6=[
+      {title:'Falta pouco pra fechar o ciclo',body:'Amanhã você vai ver tudo.'},
+      {title:'Você está prestes a entender',body:'O padrão já apareceu.'},
+      {title:'Está quase impossível ignorar',body:'Isso vai se revelar completo amanhã.'}
+    ];
+    return textos6[Math.floor(Math.random()*textos6.length)];
+  }
+
+  // Parceiro registrou
+  if(temParceiro && Math.random() > 0.6){
+    var textosP=[
+      {title:'Seu parceiro registrou hoje',body:'Ele já avançou. E você?'},
+      {title:'Seu parceiro não pulou hoje',body:'Ele continuou — e você?'},
+      {title:'Seu parceiro manteve o ritmo',body:'Você ficou pra trás hoje.'}
+    ];
+    return textosP[Math.floor(Math.random()*textosP.length)];
+  }
+
+  // Quase abandono — 2+ dias sem registrar
+  if(diasSemRegistro >= 2){
+    var textosA=[
+      {title:'Se parar agora, repete o ciclo',body:'Você estava começando a ver.'},
+      {title:'Você estava perto de entender',body:'Parar agora cancela o progresso.'},
+      {title:'Isso continua mesmo sem você aqui',body:'O padrão não espera.'},
+      {title:'Mais um dia sem encarar isso',body:'Você não está mais no automático total — não volta.'}
+    ];
+    return textosA[Math.floor(Math.random()*textosA.length)];
+  }
+
+  // Tensão — já registrou hoje ou ontem
+  if(registrouHoje || diasSemRegistro === 0){
+    if(diasTotal >= 3){
+      var textosT=[
+        {title:'Identificamos um padrão em você',body:'Tem algo no seu dia que você não viu.'},
+        {title:'Seu comportamento está formando um padrão',body:'Tem uma contradição aparecendo.'},
+        {title:'Isso diz mais sobre você do que parece',body:'Seu padrão está moldando seu resultado.'},
+        {title:'Você está sendo fiel ao que disse?',body:'Isso mostra quem você está se tornando.'}
+      ];
+      return textosT[Math.floor(Math.random()*textosT.length)];
+    }
+  }
+
+  // Curiosidade — padrão
+  var textosCuriosidade=[
+    {title:'O que merece ser registrado hoje?',body:'Reserve um momento para o seu diário.'},
+    {title:'Só um check-in rápido',body:'20 segundos e você já vê algo.'},
+    {title:'1 pergunta rápida sobre seu dia',body:'Responde isso antes de esquecer.'},
+    {title:'Tem algo no seu registro de hoje',body:'Vale olhar isso rápido.'}
+  ];
+  return textosCuriosidade[Math.floor(Math.random()*textosCuriosidade.length)];
+}
+
+function agendarLembreteDiario(){
+  if(!currentUser) return;
+  var notifAtiva=localStorage.getItem('aurim_notif_ativa_'+currentUser.id)==='1';
+  if(!notifAtiva) return;
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  if(!('serviceWorker' in navigator)) return;
+  var horaStr=localStorage.getItem('aurim_notif_hora_'+currentUser.id)||'21:00';
+  var partes=horaStr.split(':');
+  var hora=parseInt(partes[0]); var min=parseInt(partes[1]||'0');
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var registrouHoje=allEntries.some(function(e){
+    var d=new Date(e.date); d.setHours(0,0,0,0);
+    return d.getTime()===hoje.getTime();
+  });
+  var texto = getTextoNotificacao();
+  navigator.serviceWorker.ready.then(function(reg){
+    if(reg.active){
+      reg.active.postMessage({
+        type:'AGENDAR_LEMBRETE',
+        registrouHoje:registrouHoje,
+        hora:hora,
+        minuto:min,
+        title:texto.title,
+        body:texto.body
+      });
+    }
+  });
+}
+
+
+function verificarNotificacao30(){
+  var jaViu=localStorage.getItem('aurim_revelacao_vista_'+currentUser.id);
+  if(!jaViu){
+    setTimeout(function(){
+      var banner=document.getElementById('notif-banner');
+      banner.classList.add('show');
+      setTimeout(function(){banner.classList.remove('show')},6000);
+    },1200);
+  }
+}
+
+// ==================== REVELAÇÃO ====================
+function abrirRevelacao(){
+  document.getElementById('notif-banner').classList.remove('show');
+  goTo('revelacao');
+}
+
+function iniciarRevelacao(){
+  document.getElementById('rev-fase1').style.display='flex';
+  document.getElementById('rev-fase2').style.display='none';
+}
+
+async function mostrarRevelacaoCompleta(){
+  document.getElementById('rev-fase1').style.display='none';
+  var f2=document.getElementById('rev-fase2');
+  f2.style.display='flex';
+
+  var diasReg=calcDiasRegistrados();
+  var diasTotal=calcDiasDesdeInicio();
+  var diasFaltaram=Math.max(0,30-diasReg);
+
+  document.getElementById('rev-dias-badge').textContent=diasReg+' de 7 dias';
+
+  var content=document.getElementById('rev-content');
+  content.innerHTML='<div style="text-align:center;padding:40px;color:rgba(245,239,228,.4);font-size:11px;letter-spacing:.1em"><span class="spinner" style="display:block;margin:0 auto 12px;width:16px;height:16px"></span>gerando seu espelho...</div>';
+
+  var textosCarta=cartaAtual?cartaAtual.text:'Não foi escrita uma carta de intenção.';
+  var textosEntradas=allEntries.slice(0,30).map(function(e){return e.date.substring(0,10)+': '+e.text}).join('\n');
+
+  try{
+    var r=await fetch(CLAUDE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      messages:[{role:'user',content:'Você é o Aurim. Analise a carta de intenção do usuário e suas entradas. A ÂNCORA escolhida foi: '+(currentUser.ancora||'carreira')+'. Foque a análise nessa área. Analise os últimos 7 dias de beta. Gere um diagnóstico de espelho profundo em português. Responda APENAS JSON válido:\n{"aderencia":72,"titulo":"frase poética de 4-6 palavras sobre a jornada","realizou":["coisa 1 que realizou","coisa 2","coisa 3"],"nao_realizou":["o que ficou pendente 1","o que ficou pendente 2"],"insight_principal":"paragrafo de 2-3 linhas mais profundo sobre quem essa pessoa é baseado nas entradas","padrao_descoberto":"padrão emocional ou comportamental identificado","proximos_30":"sugestão específica para os próximos 30 dias reais","frase_final":"frase de encerramento inspiradora e pessoal"}\n\nCARTA DE INTENÇÃO:\n'+textosCarta+'\n\nENTRADAS DOS 7 DIAS DE BETA:\n'+textosEntradas+'\n\nCICLO BETA 7 DIAS — REGISTRADOS: '+diasReg+' de 7'}]
+    })});
+    var data=await r.json();
+    var raw=data.content&&data.content[0]?data.content[0].text:'';
+    var rev=JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    var missHtml='';
+    if(diasFaltaram>0){
+      missHtml='<div class="rev-miss-box"><div class="rev-miss-num">'+diasFaltaram+'</div><div class="rev-miss-label">dias sem registro</div><div style="font-size:11px;color:rgba(245,239,228,.5);margin-top:8px;line-height:1.6">tudo bem — o espelho reflete o que você viveu.<br>nos 30 dias reais, cada dia vai contar.</div></div>';
+    }
+
+    content.innerHTML=
+      // Título poético
+      '<div style="text-align:center;padding:20px 0 24px"><div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:26px;color:var(--white);line-height:1.4">'+rev.titulo+'</div></div>'+
+
+      // Carta original
+      '<div class="rev-carta-box"><div class="rev-carta-label">sua carta · dia 1</div><div class="rev-carta-text">'+textosCarta.substring(0,300)+(textosCarta.length>300?'...':'')+'</div></div>'+
+
+      // Score de aderência
+      '<div class="rev-score-wrap"><div class="rev-score-num">'+rev.aderencia+'%</div><div class="rev-score-label">de aderência à sua intenção</div></div>'+
+
+      // Dias faltaram
+      missHtml+
+
+      // O que realizou
+      '<div class="section-label" style="color:rgba(245,239,228,.4);margin-top:8px">o que você realizou</div>'+
+      '<div style="margin-bottom:16px">'+rev.realizou.map(function(r){return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid rgba(245,239,228,.06)"><div style="color:var(--gold);flex-shrink:0">✓</div><div style="font-size:12px;color:rgba(245,239,228,.8);line-height:1.6">'+r+'</div></div>'}).join('')+'</div>'+
+
+      // O que ficou pendente
+      '<div class="section-label" style="color:rgba(245,239,228,.4)">o que ficou pelo caminho</div>'+
+      '<div style="margin-bottom:16px">'+rev.nao_realizou.map(function(r){return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid rgba(245,239,228,.06)"><div style="color:rgba(184,96,56,.8);flex-shrink:0">○</div><div style="font-size:12px;color:rgba(245,239,228,.6);line-height:1.6">'+r+'</div></div>'}).join('')+'</div>'+
+
+      // Insight principal
+      '<div class="rev-insight"><div class="rev-insight-label">insight principal</div><div class="rev-insight-text">'+rev.insight_principal+'</div></div>'+
+
+      // Padrão descoberto
+      '<div class="rev-insight" style="border-left-color:var(--terra);background:rgba(184,96,56,.1)"><div class="rev-insight-label" style="color:var(--terra)">padrão descoberto</div><div class="rev-insight-text">'+rev.padrao_descoberto+'</div></div>'+
+
+      // Próximos 30
+      '<div class="section-label" style="color:rgba(245,239,228,.4);margin-top:8px">próximos 30 dias</div>'+
+      '<div style="background:rgba(200,152,58,.1);border:.5px solid rgba(200,152,58,.3);border-radius:14px;padding:14px;margin-bottom:20px"><div style="font-size:12px;color:rgba(245,239,228,.85);line-height:1.7">'+rev.proximos_30+'</div></div>'+
+
+      // Frase final
+      '<div style="text-align:center;padding:20px 0"><div style="font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:18px;color:rgba(245,239,228,.6);line-height:1.7">'+rev.frase_final+'</div></div>'+
+
+      // CTA próximos 30
+      '<div style="background:rgba(200,152,58,.08);border:.5px solid rgba(200,152,58,.3);border-radius:16px;padding:20px;margin:16px 0;text-align:center">'+
+        '<div style="font-size:10px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px">o próximo nível</div>'+
+        '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:20px;color:var(--white);line-height:1.5;margin-bottom:10px">Agora você viu o padrão.<br>A pergunta é: você vai ajustar isso<br>ou vai repetir mais um ciclo igual?</div>'+
+        '<div style="font-size:11px;color:rgba(245,239,228,.55);line-height:1.7;margin-bottom:16px">O ciclo de 30 dias aprofunda esse padrão até você quebrar ele de vez. Com confrontos semanais, diagnóstico completo e comparação de evolução.</div>'+
+        '<button class="next-30-btn" onclick="iniciarProximos30()" style="background:var(--gold);color:var(--ink);font-weight:400;font-size:13px">quero quebrar esse padrão</button>'+
+      '</div>'+
+      '<div style="text-align:center;padding:8px 0 20px"><div style="font-size:10px;color:rgba(245,239,228,.3);letter-spacing:.1em;cursor:pointer" onclick="iniciarProximos30()">continuar sem upgrade →</div><button onclick="compartilharEspelho()" style="background:transparent;border:.5px solid rgba(200,152,58,.3);color:#C8983A;border-radius:30px;padding:10px;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.1em;cursor:pointer;width:100%;margin-top:8px">↗ compartilhar minha descoberta</button></div>';
+
+    localStorage.setItem('aurim_revelacao_vista_'+currentUser.id, '1');
+    // Gera missão pós D7 automaticamente
+    setTimeout(function(){ gerarMissaoPosD7(); }, 1500);
+
+  }catch(e){
+    content.innerHTML='<div style="text-align:center;padding:30px;color:rgba(245,239,228,.4);font-size:11px;letter-spacing:.1em;line-height:2">erro ao gerar espelho<br><br><button class="btn-outline" style="color:var(--gold);border-color:var(--gold)" onclick="mostrarRevelacaoCompleta()">tentar novamente</button></div>';
+    console.error(e);
+  }
+}
+
+
+async function gerarFraseCompartilhavel(){
+  var cached = localStorage.getItem('aurim_frase_share_'+currentUser.id+'_ciclo'+(currentUser.ciclo||1));
+  if(cached) return cached;
+  var texts = allEntries.slice(0,7).map(function(e){return e.text.substring(0,80);}).join(' | ');
+  var ancora = currentUser.ancora||'carreira';
+  try{
+    var r = await fetch('/api/claude',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+        messages:[{role:'user',content:'Baseado nas entradas do diário, gere 1 frase impactante e anonimizada em primeira pessoa que captura o principal insight da jornada. Deve soar profunda e universal — como algo que muita gente sente mas nunca articula. Máximo 20 palavras. Responda APENAS a frase, sem aspas.\n\nÂncora: '+ancora+'\nEntradas: '+texts}]
+      })
+    });
+    var data = await r.json();
+    var frase = data.content&&data.content[0]?data.content[0].text.trim():'';
+    if(frase) localStorage.setItem('aurim_frase_share_'+currentUser.id+'_ciclo'+(currentUser.ciclo||1), frase);
+    return frase;
+  }catch(e){return ''}
+}
+
+function compartilharEspelho(){
+  gerarFraseCompartilhavel().then(function(frase){
+    var diasReg = calcDiasRegistrados();
+    var ancora = currentUser.ancora || 'carreira';
+    var texto = (frase?'"'+frase+'"\n\n':'')+'Em '+diasReg+' dias com o Aurim percebi um padrão que eu repetia em '+ancora+' sem perceber.\n\naurim.vercel.app?ref=share';
+    if(navigator.share){
+      navigator.share({title:'Aurim — minha descoberta',text:texto}).catch(function(){});
+    } else if(navigator.clipboard){
+      navigator.clipboard.writeText(texto).then(function(){showToast('copiado — cole onde quiser ✓')});
+    }
+  });
+}
+
+async function iniciarProximos30(){
+  if(!currentUser) return;
+  var novoCiclo=(currentUser.ciclo||1)+1;
+  var cicloAtual=currentUser.ciclo||1;
+
+  // Salva snapshot do ciclo atual antes de resetar
+  var snapshot={
+    ciclo: cicloAtual,
+    encerradoEm: new Date().toISOString(),
+    totalEntradas: allEntries.length,
+    diasRegistrados: calcDiasRegistrados(),
+    ancora: currentUser.ancora||'carreira',
+    moodMedio: allEntries.length ? (allEntries.reduce(function(s,e){return s+(({'😄':10,'🙂':7.5,'😐':5,'😕':2.5,'😞':0})[e.mood]||5)},0)/allEntries.length).toFixed(1) : 0
+  };
+
+  try{
+    // Salva snapshot no Firebase
+    await db.collection('users').doc(currentUser.id).collection('ciclos').doc('ciclo_'+cicloAtual).set(snapshot);
+
+    // Atualiza usuario
+    await db.collection('users').doc(currentUser.id).update({
+      createdAt: new Date().toISOString(),
+      ciclo: novoCiclo,
+      betaConcluido: true
+    });
+
+    currentUser.createdAt=new Date().toISOString();
+    currentUser.ciclo=novoCiclo;
+    localStorage.setItem('aurim_user', JSON.stringify(currentUser));
+    localStorage.removeItem('aurim_revelacao_vista_'+currentUser.id);
+    showToast('ciclo '+novoCiclo+' iniciado ✦');
+    goTo('carta');
+  }catch(e){
+    console.error(e);
+    showToast('erro ao iniciar novo ciclo');
+  }
+}
+
+// ==================== NOTIFICAÇÕES PUSH ====================
+async function pedirPermissaoNotificacao(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission==='default'){
+    await Notification.requestPermission();
+  }
+}
+
+function agendarNotificacao30(){
+  if(!currentUser||!currentUser.createdAt) return;
+  var inicio=new Date(currentUser.createdAt);
+  var dia30=new Date(inicio.getTime()+(6*24*60*60*1000));
+  var agora=new Date();
+  var diff=dia30.getTime()-agora.getTime();
+  if(diff>0&&diff<(7*24*60*60*1000)){ // agenda só se dentro de 7 dias
+    setTimeout(function(){
+      if(Notification.permission==='granted'){
+        new Notification('aurim — seu espelho chegou ✦',{
+          body:'7 dias de jornada beta. Abra o aurim e veja o que você quis versus o que viveu.',
+          icon:'icon-192.png',
+          badge:'icon-192.png'
+        });
+      }
+      verificarNotificacao30();
+    }, Math.max(0,diff));
+  }
+}
+
+// ==================== RESTANTE DO APP ====================
+function calcStreak(entries){
+  if(!entries.length) return 0;
+  var sorted=entries.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date)});
+  var today=new Date(); today.setHours(0,0,0,0);
+  var d0=new Date(sorted[0].date); d0.setHours(0,0,0,0);
+  if(today.getTime()-d0.getTime()>172800000) return 0;
+  var streak=1;
+  for(var i=1;i<sorted.length;i++){
+    var da=new Date(sorted[i-1].date); da.setHours(0,0,0,0);
+    var db2=new Date(sorted[i].date); db2.setHours(0,0,0,0);
+    if(da.getTime()-db2.getTime()===86400000) streak++; else break;
+  }
+  return streak;
+}
+
+function entryItemHTML(e){
+  var d=new Date(e.date);
+  var tags=e.tags&&e.tags.length>0?e.tags:[e.category||'geral'];
+  var tagsHtml=tags.slice(0,3).map(function(t){return '<div class="chip" style="padding:2px 8px;font-size:9px;margin-right:3px">'+t+'</div>'}).join('');
+  return '<div class="entry-item"><div style="text-align:center;flex-shrink:0;width:36px"><div class="entry-day">'+d.getDate()+'</div><div class="entry-mon">'+meses[d.getMonth()]+'</div></div><div style="flex:1"><div class="entry-preview">'+e.text+'</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;align-items:center"><div class="mood-dot" style="background:'+(moodColors[e.mood]||'#9C7A5A')+';margin-right:3px"></div>'+tagsHtml+'</div></div></div>';
+}
+
+
+
+function verificarSubidaNivel(){
+  if(!currentUser) return;
+  var nivelAtual = calcNivel();
+  var nivelAnterior = parseInt(localStorage.getItem('aurim_nivel_'+currentUser.id)||'0');
+  localStorage.setItem('aurim_nivel_'+currentUser.id, nivelAtual.num);
+  if(nivelAtual.num > nivelAnterior && nivelAnterior > 0){
+    var nomes = ['','consciência','identificação','interrupção','controle'];
+    var nomAnterior = nomes[nivelAnterior]||'';
+    var nomAtual = nomes[nivelAtual.num]||nivelAtual.nome;
+    setTimeout(function(){
+      showNivelUpModal(nomAnterior, nomAtual);
+    }, 1000);
+  }
+}
+
+function showNivelUpModal(anterior, atual){
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,4,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  modal.innerHTML =
+    '<div style="background:var(--white);border-radius:20px;padding:28px;max-width:320px;width:100%;text-align:center">'+
+      '<div style="font-size:32px;margin-bottom:12px">◈</div>'+
+      '<div style="font-size:9px;letter-spacing:.2em;color:var(--terra);margin-bottom:10px">evolução de nível</div>'+
+      '<div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:22px;color:var(--ink);margin-bottom:8px">'+anterior+' → '+atual+'</div>'+
+      '<div style="font-size:12px;color:var(--ink3);line-height:1.7;font-weight:200;margin-bottom:20px">você já não está mais no automático total. cada entrada é uma prova de que algo está mudando.</div>'+
+      '<button onclick="fecharModalFixo(this)" style="background:var(--terra);color:white;border:none;border-radius:30px;padding:12px;font-family:Jost,sans-serif;font-size:12px;letter-spacing:.1em;cursor:pointer;width:100%">continuar evoluindo</button>'+
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function calcNivel(){
+  var totalEntradas = allEntries.length;
+  var diasReg = calcDiasRegistrados();
+  var ciclo = currentUser ? (currentUser.ciclo||1) : 1;
+  // Nível baseado em entradas + ciclos + consistência
+  if(ciclo >= 3 && diasReg >= 20) return {num:4, nome:'controle', cor:'var(--terra)', proximo:null};
+  if(ciclo >= 2 && diasReg >= 10) return {num:3, nome:'interrupção', cor:'var(--terra)', proximo:'controle'};
+  if(totalEntradas >= 7) return {num:2, nome:'identificação', cor:'var(--gold)', proximo:'interrupção'};
+  if(totalEntradas >= 1) return {num:1, nome:'consciência', cor:'var(--ink2)', proximo:'identificação'};
+  return {num:0, nome:'início', cor:'var(--ink3)', proximo:'consciência'};
+}
+
+function renderMicroVitorias(){
+  var el = document.getElementById('micro-vitorias');
+  if(!el || !currentUser) return;
+  var badges = [];
+  var streak = calcStreak(allEntries);
+  var diasReg = calcDiasRegistrados();
+  var diasTotal = calcDiasDesdeInicio();
+  var totalEntradas = allEntries.length;
+  var nivel = calcNivel();
+
+  // Nível atual — sempre aparece
+  badges.push({icon:'◈', label:'nível '+nivel.num+': '+nivel.nome, color:nivel.cor});
+
+  // Streak
+  if(streak >= 7) badges.push({icon:'🔥', label:'7 dias seguidos', color:'var(--terra)'});
+  else if(streak >= 3) badges.push({icon:'⚡', label:streak+' dias seguidos', color:'var(--terra)'});
+  else if(streak >= 1) badges.push({icon:'✦', label:'em sequência', color:'var(--gold)'});
+
+  // Consistência
+  var consistencia = diasTotal > 0 ? Math.round((diasReg/diasTotal)*100) : 0;
+  if(consistencia >= 80) badges.push({icon:'🎯', label:'alta consistência', color:'var(--terra)'});
+  else if(consistencia >= 50) badges.push({icon:'📈', label:consistencia+'% consistente', color:'var(--gold)'});
+
+  el.innerHTML = badges.slice(0,3).map(function(b){
+    return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(44,26,14,.05);border-radius:20px;padding:3px 10px;font-size:9px;letter-spacing:.08em;color:'+b.color+';font-weight:300">'+b.icon+' '+b.label+'</div>';
+  }).join('');
+}
+
+function renderHomeEntries(){
+  document.getElementById('streak-num').textContent=calcStreak(allEntries);
+  renderMicroVitorias();
+  var el=document.getElementById('home-entries');
+  var recent=allEntries.slice(0,3);
+  el.innerHTML=recent.length?recent.map(entryItemHTML).join(''):'<div style="text-align:center;padding:20px;color:var(--ink3);font-size:11px;letter-spacing:.1em">nenhuma entrada ainda</div>';
+}
+
+function renderHistorico(){
+  var list=document.getElementById('historico-list');
+  list.innerHTML=allEntries.length?allEntries.map(entryItemHTML).join(''):'<div style="text-align:center;padding:30px;color:var(--ink3);font-size:11px;letter-spacing:.1em">nenhuma entrada ainda</div>';
+}
+
+function renderAnalytics(){
+  var d=new Date();
+  document.getElementById('analytics-month').textContent=mesesFull[d.getMonth()]+' '+d.getFullYear();
+  var days=d.getDate(), row=document.getElementById('timeline-row'), html='';
+  for(var i=1;i<=days;i++){
+    (function(day){
+      var e=allEntries.find(function(en){var ed=new Date(en.date);return ed.getDate()===day&&ed.getMonth()===d.getMonth()&&ed.getFullYear()===d.getFullYear()});
+      var color=e?(moodColors[e.mood]||'#9C7A5A'):'rgba(44,26,14,0.07)';
+      var sz=e?Math.min(30,16+Math.round(e.text.length/40)):14;
+      html+='<div class="day-circle" style="width:'+sz+'px;height:'+sz+'px;background:'+color+'" title="'+day+'"></div>';
+    })(i);
+  }
+  row.innerHTML=html;
+  var catCount={},total=allEntries.length||1;
+  allEntries.forEach(function(e){var c=e.category||'geral';catCount[c]=(catCount[c]||0)+1});
+  var cats=Object.entries(catCount).sort(function(a,b){return b[1]-a[1]}).slice(0,5);
+  var catColors=['var(--terra)','var(--gold)','#9C7A5A','rgba(44,26,14,0.35)','rgba(184,96,56,0.4)'];
+  document.getElementById('cat-bars').innerHTML=cats.length?cats.map(function(c,i){
+    var pct=Math.round(c[1]/total*100);
+    return '<div class="cat-bar" style="'+(i===cats.length-1?'margin-bottom:0':'')+'"><div class="cat-bar-label"><span class="cat-bar-name">'+c[0]+'</span><span class="cat-bar-pct">'+pct+'%</span></div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:'+pct+'%;background:'+catColors[i]+'"></div></div></div>';
+  }).join(''):'<div style="color:var(--ink3);font-size:11px;text-align:center;padding:8px">nenhuma entrada ainda</div>';
+  if(allEntries.length){
+    var sum=allEntries.reduce(function(s,e){return s+(moodValues[e.mood]||5)},0);
+    document.getElementById('humor-medio').textContent=(sum/allEntries.length).toFixed(1);
+  }
+}
+
+
+// ==================== COMPARAÇÃO DE CICLOS ====================
+function buildCicloComparacao(cicloAnterior, diagAtual){
+  if(!cicloAnterior||!diagAtual) return '';
+  var cicloAtualNum=currentUser.ciclo||1;
+  var diasRegAtual=calcDiasRegistrados();
+  var diasRegAnt=cicloAnterior.diasRegistrados||0;
+  var moodAtual=allEntries.length?(allEntries.reduce(function(s,e){return s+(({'😄':10,'🙂':7.5,'😐':5,'😕':2.5,'😞':0})[e.mood]||5)},0)/allEntries.length).toFixed(1):0;
+  var moodAnt=cicloAnterior.moodMedio||0;
+  var consistencia=diasRegAnt>0?Math.round(((diasRegAtual-diasRegAnt)/diasRegAnt)*100):0;
+  var humor=moodAnt>0?Math.round(((moodAtual-moodAnt)/moodAnt)*100):0;
+  var consistenciaColor=consistencia>=0?'var(--terra)':'#c0392b';
+  var humorColor=humor>=0?'var(--terra)':'#c0392b';
+  var consistenciaSinal=consistencia>=0?'+':'';
+  var humorSinal=humor>=0?'+':'';
+
+  return '<div class="section-label" style="margin-top:16px">comparação com ciclo anterior</div>'+
+    '<div class="card" style="margin-bottom:12px">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'+
+        '<span style="font-size:10px;letter-spacing:.1em;color:var(--ink3)">ciclo '+(cicloAtualNum-1)+'</span>'+
+        '<span style="font-size:10px;letter-spacing:.1em;color:var(--terra)">ciclo '+cicloAtualNum+'</span>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-around;text-align:center;padding:8px 0">'+
+        '<div>'+
+          '<div style="font-family:Jost,sans-serif;font-weight:100;font-size:28px;color:'+consistenciaColor+'">'+consistenciaSinal+consistencia+'%</div>'+
+          '<div style="font-size:9px;letter-spacing:.12em;color:var(--ink3)">consistência</div>'+
+          '<div style="font-size:9px;color:var(--ink3);margin-top:2px">'+diasRegAnt+' → '+diasRegAtual+' dias</div>'+
+        '</div>'+
+        '<div style="width:.5px;background:rgba(44,26,14,.08)"></div>'+
+        '<div>'+
+          '<div style="font-family:Jost,sans-serif;font-weight:100;font-size:28px;color:'+humorColor+'">'+humorSinal+humor+'%</div>'+
+          '<div style="font-size:9px;letter-spacing:.12em;color:var(--ink3)">humor médio</div>'+
+          '<div style="font-size:9px;color:var(--ink3);margin-top:2px">'+Number(moodAnt).toFixed(1)+' → '+Number(moodAtual).toFixed(1)+'</div>'+
+        '</div>'+
+        '<div style="width:.5px;background:rgba(44,26,14,.08)"></div>'+
+        '<div>'+
+          '<div style="font-family:Jost,sans-serif;font-weight:100;font-size:28px;color:var(--terra)">'+cicloAtualNum+'</div>'+
+          '<div style="font-size:9px;letter-spacing:.12em;color:var(--ink3)">ciclo atual</div>'+
+          '<div style="font-size:9px;color:var(--ink3);margin-top:2px">'+cicloAnterior.ancora+'→'+currentUser.ancora+'</div>'+
+        '</div>'+
+      '</div>'+
+      (consistencia>0?'<div style="background:rgba(184,96,56,.07);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--ink2);line-height:1.5">✦ você evoluiu '+consistencia+'% em consistência em relação ao ciclo anterior. continue assim.</div>':
+       consistencia<0?'<div style="background:rgba(184,96,56,.07);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--ink2);line-height:1.5">○ no ciclo anterior você registrou mais. que tal bater o recorde?</div>':
+       '<div style="background:rgba(184,96,56,.07);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--ink2);line-height:1.5">→ mesma consistência do ciclo anterior. o próximo pode ser o melhor.</div>')+
+    '</div>';
+}
+
+async function renderDiagnostico(){
+  var d=new Date();
+  document.getElementById('diag-mes').textContent=mesesFull[d.getMonth()]+' '+d.getFullYear();
+  var body=document.getElementById('diag-body');
+  if(!allEntries.length){body.innerHTML='<div style="text-align:center;padding:40px;color:var(--ink3);font-size:11px;letter-spacing:.1em;line-height:2">faça pelo menos uma entrada<br>para gerar seu diagnóstico</div>';return;}
+  body.innerHTML='<div style="text-align:center;padding:40px;color:var(--ink3);font-size:11px;letter-spacing:.1em"><span class="spinner spinner-t" style="display:block;margin:0 auto 12px;width:16px;height:16px"></span>analisando...</div>';
+  var cicloAnterior=await loadCicloAnterior();
+  var texts=allEntries.slice(0,10).map(function(e){return e.text}).join('\n');
+  try{
+    var r=await fetch(CLAUDE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:'Você é o Aurim. Analise estas entradas e gere diagnóstico PERMA em português. A ÂNCORA do usuário é: '+(currentUser.ancora||'carreira')+'. Foque os insights e sugestões nessa área de vida. Responda APENAS JSON:\n{"score":74,"padrao":"frase curta","positivity":78,"engagement":65,"relationships":82,"meaning":71,"achievement":58,"insights":["i1","i2","i3"],"alavanca":"sugestão focada na âncora","ladrao":"o que drena nessa área"}\n\nÂNCORA: '+(currentUser.ancora||'carreira')+'\nEntradas:\n'+texts}]})});
+    var data=await r.json();
+    var diag=JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
+    var permaItems=[['positivity',diag.positivity],['engagement',diag.engagement],['relationships',diag.relationships],['meaning',diag.meaning],['achievement',diag.achievement]];
+    body.innerHTML=
+      '<div style="text-align:center;padding:20px 0 10px"><div class="score-big">'+diag.score+'</div><div class="score-label">score geral · perma</div><div style="margin:12px 0 6px;font-size:11px;letter-spacing:.12em;color:var(--ink2)">padrão recorrente</div><div class="chip" style="background:rgba(184,96,56,.1);color:var(--terra)">'+diag.padrao+'</div></div>'+
+      '<div class="section-label">dimensões perma</div><div class="card">'+permaItems.map(function(p){return '<div class="perma-item"><span class="perma-name">'+p[0]+'</span><div class="perma-track"><div class="perma-fill" style="width:'+p[1]+'%"></div></div><span class="perma-score-val">'+p[1]+'</span></div>'}).join('')+'</div>'+
+      '<div class="section-label" style="margin-top:16px">3 insights</div><div class="card">'+diag.insights.map(function(ins,i){return '<div class="insight-item"><div class="insight-num">'+(i+1)+'</div><div class="insight-text">'+ins+'</div></div>'}).join('')+'</div>'+
+      '<div class="section-label" style="margin-top:16px">alavanca do mês</div><div class="hbox"><div class="hbox-label">foco recomendado</div><div class="hbox-text">'+diag.alavanca+'</div></div>'+
+      '<div class="section-label">ladrão de energia</div><div class="hbox" style="border-left-color:rgba(184,96,56,.3)"><div class="hbox-label" style="color:var(--ink3)">o que drena você</div><div class="hbox-text">'+diag.ladrao+'</div></div>'+
+      '<div style="height:8px"></div>'+
+      buildCicloComparacao(cicloAnterior, diag)+
+      '<button class="btn-primary" onclick="renderDiagnostico()">regenerar com ia</button>';
+  }catch(e){
+    body.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink3);font-size:11px;line-height:2">erro ao gerar<br><br><button class="btn-outline" onclick="renderDiagnostico()">tentar novamente</button></div>';
+    console.error(e);
+  }
+}
+
+function renderCarta(){
+  var d=new Date();
+  document.getElementById('carta-mes-label').textContent='sua intenção — beta 7 dias';
+  if(cartaAtual){
+    document.getElementById('carta-text').value=cartaAtual.text||'';
+  }
+}
+
+function selectMood(btn,emoji){
+  document.querySelectorAll('.mood-btn').forEach(function(b){b.classList.remove('selected')});
+  btn.classList.add('selected'); currentMood=emoji;
+}
+
+async function detectCategory(text){
+  if(text.length<20){document.getElementById('category-display').innerHTML='';return}
+  clearTimeout(detectTimer);
+  detectTimer=setTimeout(async function(){
+    try{
+      var r=await fetch(CLAUDE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:'Analise este trecho de diário e identifique ATÉ 4 categorias presentes. Escolha apenas as que realmente aparecem no texto entre: trabalho, saúde mental, relacionamentos, família, saúde & corpo, espiritualidade, finanças, produtividade, humor. Responda APENAS as categorias separadas por vírgula, sem mais nada.\n\n'+text}]})});
+      var data=await r.json();
+      var cats=data.content&&data.content[0]?data.content[0].text.trim():'';
+      if(cats){
+        var tags=cats.split(',').map(function(c){return c.trim()}).filter(Boolean).slice(0,4);
+        document.getElementById('category-display').innerHTML=tags.map(function(t){return '<div class="cat-chip" style="margin-right:4px">'+t+'</div>'}).join('');
+        document.getElementById('category-display').dataset.tags=JSON.stringify(tags);
+      }
+    }catch(e){}
+  },900);
+}
+
+function toggleVoice(btn){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Use o Chrome para reconhecimento de voz.');return}
+  if(isRecording){recognition&&recognition.stop();btn.classList.remove('recording');isRecording=false;return}
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='pt-BR';recognition.continuous=true;recognition.interimResults=true;
+  recognition.onresult=function(e){var t='';for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('entry-text').value=t;detectCategory(t)};
+  recognition.onend=function(){btn.classList.remove('recording');isRecording=false};
+  recognition.start();btn.classList.add('recording');isRecording=true;
+}
+
+function toggleVoiceCarta(btn){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Use o Chrome para voz.');return}
+  if(isRecording){recognition&&recognition.stop();btn.style.background='var(--terra)';isRecording=false;return}
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='pt-BR';recognition.continuous=true;recognition.interimResults=true;
+  recognition.onresult=function(e){var t='';for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('carta-text').value=t};
+  recognition.onend=function(){btn.style.background='var(--terra)';isRecording=false};
+  recognition.start();btn.style.background='#8B3A1E';isRecording=true;
+}
+
+async function saveEntry(){
+  var text=document.getElementById('entry-text').value.trim();
+  if(!text){showToast('escreva algo antes de salvar');return}
+  var btn=document.getElementById('btn-salvar');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>salvando...';
+  var catEl=document.getElementById('category-display');
+  var tagsRaw=catEl.dataset.tags;
+  var tags=tagsRaw?JSON.parse(tagsRaw):[];
+  var category=tags.length>0?tags[0]:'geral';
+  var entry={text:text,mood:currentMood,category:category,tags:tags,date:new Date().toISOString(),userId:currentUser.id};
+  try{
+    await db.collection('users').doc(currentUser.id).collection('entries').add(entry);
+    allEntries.unshift(entry);
+    document.getElementById('entry-text').value='';
+    document.getElementById('category-display').innerHTML='';
+    document.querySelectorAll('.mood-btn').forEach(function(b){b.classList.remove('selected')});
+    document.querySelector('.mood-btn:nth-child(3)').classList.add('selected');
+    currentMood='😐';
+    showToast('entrada salva ✓');
+    goTo('home');
+  }catch(e){showToast('erro ao salvar');console.error(e)}
+  btn.disabled=false;btn.textContent='salvar entrada';
+}
+
+async function salvarCarta(){
+  var text=document.getElementById('carta-text').value.trim();
+  if(!text){showToast('escreva sua carta primeiro');return}
+  try{
+    var cartaData={text:text,date:new Date().toISOString()};
+    await db.collection('users').doc(currentUser.id).collection('cartas').doc('atual').set(cartaData);
+    cartaAtual=cartaData;
+    showToast('carta guardada ✓');
+    // Gera insight poderoso D1 após carta
+    gerarInsightD1(text);
+    goTo('home');
+  }catch(e){showToast('erro ao salvar carta');console.error(e)}
+}
+
+async function loadEntries(){
+  try{
+    var snap=await db.collection('users').doc(currentUser.id).collection('entries').orderBy('date','desc').limit(50).get();
+    allEntries=snap.docs.map(function(d){return d.data()});
+  }catch(e){console.error(e);allEntries=[]}
+}
+
+async function loadCarta(){
+  try{
+    var doc=await db.collection('users').doc(currentUser.id).collection('cartas').doc('atual').get();
+    if(doc.exists) cartaAtual=doc.data();
+  }catch(e){cartaAtual=null}
+}
+
+async function loadCicloAnterior(){
+  if(!currentUser||!currentUser.ciclo||currentUser.ciclo<=1) return null;
+  try{
+    var cicloNum=currentUser.ciclo-1;
+    var doc=await db.collection('users').doc(currentUser.id).collection('ciclos').doc('ciclo_'+cicloNum).get();
+    return doc.exists?doc.data():null;
+  }catch(e){return null}
+}
+
+async function entrar(){
+  var nome=document.getElementById('ob-nome').value.trim();
+  var email=document.getElementById('ob-email').value.trim().toLowerCase();
+  if(!nome||!email){showToast('preencha nome e e-mail');return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('e-mail inválido');return}
+  var btn=document.getElementById('btn-entrar');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>entrando...';
+  try{
+    var userId=btoa(unescape(encodeURIComponent(email))).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
+    var userRef=db.collection('users').doc(userId);
+    var userDoc=await userRef.get();
+    if(!userDoc.exists) await userRef.set({nome:nome,email:email,createdAt:new Date().toISOString(),plano:'gratuito',ciclo:1,ancora:ancoraSelecionada});
+    var userData=userDoc.exists?userDoc.data():{nome:nome,email:email,plano:'gratuito',ciclo:1,createdAt:new Date().toISOString()};
+    currentUser={id:userId,nome:userData.nome||nome,email:email,plano:userData.plano||'gratuito',createdAt:userData.createdAt,ciclo:userData.ciclo||1,ancora:userData.ancora||null,modo:userData.modo||'leve'};
+    localStorage.setItem('aurim_user',JSON.stringify(currentUser));
+    await loadEntries();
+    await loadCarta();
+    document.getElementById('home-user-name').textContent=currentUser.nome.split(' ')[0];
+  var ancIcons={carreira:'💼',saúde:'🌿',relacionamentos:'🤝',família:'🏠',finanças:'💰',propósito:'✨'};
+  var ancEl=document.getElementById('home-ancora');
+  if(ancEl&&currentUser.ancora) ancEl.textContent=(ancIcons[currentUser.ancora]||'✨')+' '+currentUser.ancora;
+    document.getElementById('home-plano-label').textContent=currentUser.plano;
+    await pedirPermissaoNotificacao();
+    agendarNotificacao30();
+    agendarLembreteDiario();
+    if(!currentUser.ancora){ goTo('ancora'); } else { goTo('home'); }
+  }catch(e){
+    console.error(e);showToast('erro ao conectar');
+    btn.disabled=false;btn.textContent='começar';
+  }
+}
+
+function showPlanos(){document.getElementById('modal-planos').classList.add('open')}
+function closePlanos(e){if(!e||e.target===document.getElementById('modal-planos'))document.getElementById('modal-planos').classList.remove('open')}
+
+async function init(){
+  renderHomeDate();
+  var saved=localStorage.getItem('aurim_user');
+  if(saved){
+    try{
+      currentUser=JSON.parse(saved);
+      await loadEntries();
+      await loadCarta();
+      document.getElementById('home-user-name').textContent=currentUser.nome.split(' ')[0];
+  var ancIcons={carreira:'💼',saúde:'🌿',relacionamentos:'🤝',família:'🏠',finanças:'💰',propósito:'✨'};
+  var ancEl=document.getElementById('home-ancora');
+  if(ancEl&&currentUser.ancora) ancEl.textContent=(ancIcons[currentUser.ancora]||'✨')+' '+currentUser.ancora;
+      document.getElementById('home-plano-label').textContent=currentUser.plano||'gratuito';
+      agendarNotificacao30();
+      agendarLembreteDiario();
+      renderParceiroHome();
+      setTimeout(function(){goTo('home')},2800);
+    }catch(e){
+      localStorage.removeItem('aurim_user');
+      setTimeout(function(){goTo('onboarding')},2800);
+    }
+  }else{
+    setTimeout(function(){goTo('onboarding')},2800);
+  }
+}
+
+init();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      console.log('SW registrado:',reg.scope);
+    }).catch(function(e){console.log('SW erro:',e)});
+  });
+}
+</script>
+</body>
+</html>
